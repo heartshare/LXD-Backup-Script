@@ -1,6 +1,8 @@
 # From Section
 set from = "$FROM_MAIL"
 set realname = "$FROM_NAME"
+set smtp_authenticators="plain"
+set ssl_starttls=true
 
 # SMTP Details
 set smtp_url = "$SMTP_URL"
