@@ -10,7 +10,7 @@ location:
     # repositories are backed up to in sequence. See ssh_command for SSH options like
     # identity file or port.
     repositories:
-        - ${MNT}
+        - /${MNT}
 
     # Stay in same file system (do not cross mount points). Defaults to false.
     #one_file_system: true
