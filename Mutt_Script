@@ -3,8 +3,8 @@ set from = "$FROM_MAIL"
 set realname = "$FROM_NAME"
 
 # SMTP Details
-set smtp_url = "$URL"
-set smtp_pass = "$MAIL_PASS"
+set smtp_url = "$SMTP_URL"
+set smtp_pass = "$SMTP_PASS"
 set imap_user = "$FROM_MAIL"
 set imap_pass = "$IMAP_PASS"
 
