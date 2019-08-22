@@ -1,1 +1,406 @@
+#/bin/bash
 
+#Prompt to define wasabi access key
+while true 
+do
+                read -p "Please enter your Wasabi Access Key: `echo $'\n> '`" ACCESS_KEY
+                read -p "You entered '$ACCESS_KEY' is this correct?(y/n)" yn
+                case $yn in
+                [Yy]* ) break;;
+                [Nn]* ) echo "Please try again:";sleep 2s;;
+                * ) echo "Please answer yes or no.";;
+                esac
+                done
+
+#Prompt to define wasabi secret key
+while true 
+do
+                read -p "Please enter your Wasabi Secret Key: `echo $'\n> '`" SECRET_KEY
+                read -p "You entered '$SECRET_KEY' is this correct?(y/n)" yn
+                case $yn in
+                [Yy]* ) break;;
+                [Nn]* ) echo "Please try again:";sleep 2s;;
+                * ) echo "Please answer yes or no.";;
+                esac
+                done
+
+#Prompt to define bucket region
+while true 
+do
+                read -p "Please enter the region selected when creating the bucket [eu-central-1]: `echo $'\n> '`" BUCKET_LOC
+                BUCKET_LOC=${BUCKET_LOC:-eu-central-1}                                                          #Used to provide default option
+                read -p "You selected '$BUCKET_LOC' is this correct?(y/n)" yn
+                case $yn in
+                [Yy]* ) break;;
+                [Nn]* ) echo "Please try again:";sleep 2s;;
+                * ) echo "Please answer yes or no.";;
+                esac
+                done
+				
+#Prompt to define bucket name
+while true 
+do
+                read -p "Please enter the name of the bucket you created: `echo $'\n> '`" BUCKET
+                read -p "You entered '$BUCKET' is this correct?(y/n)" yn
+                case $yn in
+                [Yy]* ) break;;
+                [Nn]* ) echo "Please try again:";sleep 2s;;
+                * ) echo "Please answer yes or no.";;
+                esac
+                done
+
+echo "Installing S3FS and Fuse"
+sleep 2s
+apt install s3fs fuse -y 
+echo $ACCESS_KEY:$SECRET_KEY > ~/.passwd-s3fs
+chmod 600 ~/.passwd-s3fs
+echo "Your keys were saved in ~/.passwd-s3fs"
+
+#If unsure of what failed comment the first line and uncomment the second line to enable debug mode
+echo "Mounting Wasabi Bucket"
+s3fs $BUCKET $MNT -o passwd_file=${HOME}/.passwd-s3fs -o url=https://s3.$BUCKET_LOC.wasabisys.com
+#s3fs $BUCKET $MNT -o passwd_file=${HOME}/.passwd-s3fs -o url=https://s3.$BUCKET_LOC.wasabisys.com -o dbglevel=info -f -o curldbg
+
+echo "Verifying Mount"
+
+mount -l | grep $MNT 
+
+if [ $? -ne 0 ]
+
+# If success
+then
+echo "Mounting has failed. Please try doing it manually."
+printf "\n"
+sleep 3s
+exit 1 # Exit with general error
+
+# If failure
+else
+echo "Bucket mounted successfully."
+printf "\n"
+sleep 3s
+
+fi
+
+#Option to mount bucket at boot
+while true; do
+    read -p "Do you wish to mount the bucket at boot?(yn)" yn
+    case $yn in
+        [Yy]* ) echo "s3fs#$BUCKET $MNT fuse _netdev,allow_other,use_path_request_style,url=https://s3.$BUCKET_LOC.wasabisys.com/ 0 0" >> /etc/fstab;break;;
+        [Nn]* ) break;;
+        * ) echo "Please answer yes or no.";;
+    esac
+done
+
+#############################################################################################--BACKUP SCRIPT--#####################################################################################################################                
+#Variables that carry over from Install
+# $TEMP  $FILENAME_NOFORMAT  $NAME  $LXD  $FILENAME $BEGIN
+
+#Adicionar for i in * neste script em relação aos containers
+
+
+# Checking to see if the Mail package is installed on your system
+# Used for sending email confirmations of the backup process
+MUTT='mutt'     
+echo "Checking to see if '$MUTT' is installed on your system."
+printf "\n"
+sleep 2s
+
+dpkg -s $MUTT 2>/dev/null >/dev/null
+
+if [ $? -ne 0 ]
+
+# If success
+then
+echo "The '$MUTT' package is not installed on your system."
+echo "Package '$MUTT' will now be installed."
+printf "\n"
+sleep 2s
+
+INSTALL=$
+set -x                               #Sends output to terminal
+(apt install $MUTT -y) 
+{ set +x; } 2>/dev/null              #Stops output to terminal and hides set+x from output
+
+
+if [ $? -eq 0 ]
+
+# If success
+then
+echo "The '$MUTT' package was installed successfully. You will receive email updates for this backup."
+echo "..."
+printf "\n"
+sleep 2s
+# If failure
+else
+echo "Install of '$MUTT' package failed."
+printf "\n"
+echo "Please try installing it manually."
+printf "\n"
+sleep 5s
+exit 1 # Exit with general error
+
+fi
+
+else
+echo "The '$MUTT' package is installed on your system. You will receive email updates for this backup."
+echo "..."
+printf "\n"
+sleep 2s
+
+fi
+printf "\n"
+
+
+#Prompt to define notification email
+while true 
+do
+                read -p "Please define email to receive backup notifications: `echo $'\n> '`" MAIL
+                read -p "You entered '$MAIL' is this correct?(y/n)" yn
+                case $yn in
+                [Yy]* ) break;;
+                [Nn]* ) echo "Please try again:";sleep 2s;;
+                * ) echo "Please answer yes or no.";;
+                esac
+                done
+
+#Prompt to define sender email
+while true 
+do
+                read -p "Please define email sender for backup notifications.
+This email has to be configured on your SMTP server:`echo $'\n> '`" FROM_MAIL
+                read -p "You entered '$FROM_MAIL' is this correct?(y/n)" yn
+                case $yn in
+                [Yy]* ) break;;
+                [Nn]* ) echo "Please try again:";sleep 2s;;
+                * ) echo "Please answer yes or no.";;
+                esac
+                done
+
+#Prompt to define SMTP password
+read -s -p "Please enter the SMTP password for your server: `echo $'\n> '`" SMTP_PASS1
+read -s -p "Please confirm your SMTP password: `echo $'\n> '`" SMTP_PASS2
+
+# check if passwords match and if not ask again
+while [ "$SMTP_PASS1" != "$SMTP_PASS2" ];
+do
+echo "Password Mismatch. Please try again."
+read -s -p "Please enter the SMTP password for your server: `echo $'\n> '`" SMTP_PASS1
+read -s -p "Please confirm your SMTP password: `echo $'\n> '`" SMTP_PASS2
+done
+
+SMTP_PASS=$SMTP_PASS2
+
+#Prompt to define sender name
+while true 
+do
+                read -p "Please define sender name for backup notifications: `echo $'\n> '`" FROM_NAME
+                read -p "You entered '$FROM_NAME' is this correct?(y/n)" yn
+                case $yn in
+                [Yy]* ) break;;
+                [Nn]* ) echo "Please try again:";sleep 2s;;
+                * ) echo "Please answer yes or no.";;
+                esac
+                done
+                
+#Prompt to define SMTP URL
+while true 
+do
+                read -p "Please indicate the URL to your SMTP server in the following format (smtp.domain.com:587): `echo $'\n> '`" SMTP_URL
+                read -p "You entered '$SMTP_URL' is this correct?(y/n)" yn
+                case $yn in
+                [Yy]* ) break;;
+                [Nn]* ) echo "Please try again:";sleep 2s;;
+                * ) echo "Please answer yes or no.";;
+                esac
+                done
+                
+set -x                               #Sends output to terminal
+(wget -P $TEMP https://raw.githubusercontent.com/The-Inamati/LXD-Backup-Script/master/Mutt_Script)
+mv $TEMP/Mutt_Script ~/.muttrc
+{ set +x; } 2>/dev/null              #Stops output to terminal and hides set+x from output
+sed -i -e "s/\$FROM_MAIL/$FROM_MAIL/" -e "s/\$FROM_NAME/$FROM_NAME/" -e "s/\$SMTP_PASS/$SMTP_PASS/" -e "s/\$SMTP_URL/$SMTP_URL/"  ~/.muttrc   #Substitutes variables in downloaded configuration file
+
+
+mkdir -p ~/.mutt/cache #Creates cache directory for Mutt
+
+echo "Mutt was intalled and configured successfully." | mutt  -s "Test Email Sent Sucessfully" $MAIL -a ~/.muttrc
+
+echo "A test email was just sent with the details you specified. Please confirm you received it."
+echo "If you didn't receive it please check mutt configuration in the end at ~/.muttrc."
+read -p "Press enter to continue"
+
+echo "************************************"
+echo "Continuing with backup in 5 seconds."
+echo "************************************"
+sleep 5s 
+
+cd $LXD
+for i in * 
+do
+
+# Check if the required arguments are not empty
+if [ "$i" != '' ];
+
+# If none of these arguments are empty, the script can proceed
+then
+
+
+# Clear terminal window
+clear
+
+# Welcome/Start message
+echo "****************************************"
+echo "LXD Container Backup Script"
+echo "Created for Peace of Mind"
+echo "****************************************"
+
+printf "\n"
+
+echo "Starting in 5 seconds."
+echo "..."
+printf "\n"
+sleep 5s # Wait 5 seconds
+
+           
+
+            echo "The snapshot backup filename will be: $FILENAME"
+            echo "Stored temporarily within: $TEMP"
+            echo "Full temporary savepath: $TEMP/$FILENAME"
+            printf "\n"
+            sleep 5s # Wait 5 seconds
+
+
+            # Start snapshot backup process
+            echo "Starting snapshot backup process..."
+            echo "Please be patient, this can take a while"
+
+            # Create a snapshot of the container, with the snapshot name being 'backup'
+            echo "Creating 'backup' snapshot of '$NAME'."
+            lxc snapshot $NAME backup
+
+            # Publish this snapshot temporarily with an alias name of 'lxd-image-backup-$NAME'
+            echo "Publishing 'backup' snapshot temporarily with an alias name of 'lxd-image-backup-$NAME'."
+            lxc publish $NAME/backup --alias lxd-image-backup-$NAME
+
+            # Export the 'lxd-image-backup-$NAME' image, this will save the export in a 'tar.gz' format to the specified temporary location
+            echo "Exporting 'lxd-image-backup-$NAME' image in this location: '$TEMP/$FILENAME'."
+            #lxc image export lxd-image-backup-$NAME .
+            lxc image export lxd-image-backup-$NAME $TEMP/$FILENAME_NOFORMAT
+
+fi
+
+#Backup the Containers
+set -x
+borgmatic --verbosity 1
+{ set +x; } 2>/dev/null              #Stops output to terminal and hides set+x from output      
+      
+cd $LXD
+for i in * 
+do
+            
+            # Now delete the 'lxd-image-backup-$NAME' image
+            echo "Deleting 'lxd-image-backup-$NAME' image from server."
+            lxc image delete lxd-image-backup-$NAME
+
+            # And delete the temporary 'backup' snapshot
+            echo "Deleting temporary 'backup' snapshot from server."
+            lxc delete local:$NAME/backup
+
+            echo "Snapshot backup process has finished."
+            echo "..."
+            printf "\n"
+
+
+            # Verify snapshot file has been created
+            echo "Verifying $FILENAME file has been created."
+            printf "\n"
+
+            if [ -f $TEMP/$FILENAME ]
+
+            # If success
+            then
+                echo "File exists on the local server."
+                printf "\n"
+                   
+                # Remove snapshot file from the local server
+                echo "Now removing $FILENAME from the local server."
+                rm $TEMP/$FILENAME
+                echo "Finished removing file."
+                echo "..."
+                printf "\n"
+
+
+                # Verify snapshot file has been removed from the local server
+                echo "Verifying $FILENAME has been removed from the local server."
+                echo "..."
+                printf "\n"
+
+                if [ -f $TEMP/$FILENAME ]
+
+                # If success
+                then
+                    echo "File still exists on the local server."
+                    echo "Backup has failed."
+                    printf "\n"
+
+                    # Send an email explaining this failure
+                    echo "An email will be sent to $MAIL"
+                    echo "$FILENAME was supposed to removed, but still exists on the local server." | mail -s "Failure: $NAME Backup" $MAIL
+                    echo "A log file exists in $TEMP/backup_log_$BEGIN.txt"
+					sleep 5s
+					exit 1 # Exit with general error
+
+
+                # If failure
+                else
+                echo "Backup has finished successfully."
+                printf "\n"
+
+                # Send an email explaing a successful backup
+                END=$(date +%Y-%m-%d-%H:%M)
+				TOTAL=$(expr %END - $BEGIN)				
+				echo "An email will be sent to $MAIL"
+                echo "Backup has finished successfully. $FILENAME has been created and backed up successfully." | mail -s "Success: $NAME Backup" $MAIL #adicionar total de tempo ao email
+                echo "A log file exists in $TEMP/backup_log_$BEGIN.txt"
+				printf "\n"
+				while true; do
+                read -p "Do you wish to delete the log file?(y/n)" yn
+                case $yn in
+                [Yy]* ) rm $TEMP/backup_log_$BEGIN.txt;break;;
+                [Nn]* ) break;;
+                * ) echo "Please answer yes or no.";;
+                esac
+                done
+                fi
+                                                
+     
+            # If failure
+            else
+                echo "File does not exist on the local server."
+                echo "Backup has failed."
+                printf "\n"
+
+                # Send an email explaining this failure
+                echo "An email will be sent to $MAIL"
+                echo "Creating $FILENAME on local server failed." | mail -s "Failure: $NAME Backup" $MAIL
+                echo "A log file exists in $TEMP/backup_log_$BEGIN.txt"
+				sleep 5s
+                exit 1 # Exit with general error
+
+            fi
+
+
+       
+  
+# If one or more arguments are empty, produce an error
+else
+    echo "One or more arguments are empty."
+    echo "A log file exists in $TEMP/backup_log_$BEGIN.txt"
+	sleep 5s
+    exit 1 # Exit with general error
+fi
+
+done
+
+exit 0 # Successful exit
