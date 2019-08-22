@@ -1,0 +1,778 @@
+#!/bin/bash
+
+BEGIN=$(date +%Y-%m-%d-%H:%M)
+
+##
+## Required software libaries:
+##   'mutt'             Used for sending email using the 'mail' command
+##   'pushover'         Used to send notifications
+##   'borgbackup'       Used for backing up files with encryption, retention and deduplication
+##   'borgmatic'        Simplifies borg usage and configuration
+##   'Python"           Required by PIP and connected to borgmatic installation
+##   'PIP'              Necessary to install borgmatic
+##   'WGET'             Needed to get the cuswtomized borgmatic scripts
+##   'Expect'           Needed to provide interactive input throughout the script
+##   'S3FS'             Needed to mount S3 bucket as FS
+
+# Clear terminal window
+clear
+
+#Script Introduction
+
+echo "Hi,
+This script was designed to make LXD backups easier to implement and mantain.
+	
+My only work was the script itself as it is just an integration of several tools developed by other people.
+			 
+To make full use of this script you will need a Wasabi account for off-site backups and in that account you will need to generate keys for access to your bucket.
+
+You will also need to know the region in which you created your bucket.
+
+A SMTP mail server or a Pushover account is also needed to send the backup notifications.
+			 
+Depending on your choices the following software may be installed:
+Mutt             Used for sending email using the 'mail' command
+Pushover         Used to send notifications if chosen
+Borgbackup       Used for backing up files with encryption, retention and deduplication
+Borgmatic        Simplifies borg usage and configuration
+Python           Required by PIP and connected to borgmatic installation
+Pip              Necessary to install borgmatic
+Wget             Needed to get the cuswtomized borgmatic scripts
+Expect           Needed to provide interactive input throughout the script
+S3FS             Needed to mount S3 bucket as FS
+
+			 
+In addition this script will also create, move and delete the files and folders it needs to implement the backup solution.
+			 
+The script was designed to not make unnecessary changes and in theory it should not impact a production system."
+
+while true; do
+	read -p "Taking all this into account do you wish to proceed?(y/n)" yn
+	case $yn in
+    [Yy]* ) echo "Proceeding...";sleep 5s;break;;
+    [Nn]* ) exit 1;;
+    * ) echo "Please answer yes or no.";;
+    esac
+done
+
+# Clear terminal window
+clear
+
+#Check if running as root
+if [ "$EUID" -ne 0 ]
+  then echo "Please run this script as root"
+  exit 1     # Exit with General Error
+
+fi
+
+
+#Check if running on right release
+VERSION=$(lsb_release -r | grep 18.04)
+if [ $? -ne 0 ]
+	then
+		echo "*******"
+		echo "WARNING"
+		echo "*******"
+		printf "\n"
+		echo "You are running this script on an untested release."
+		sleep 2s
+		printf "\n"
+		echo "Please verify the script for compatibility issues or comment these lines."
+		sleep 3s
+		exit 1     # Exit with General Error
+	else 
+		echo "Ubuntu Version 18.04 confirmed."
+		sleep 2s
+  
+fi
+
+printf "\n"
+printf "\n"
+echo "This script was made for Ubuntu 18.04."
+echo "--------------------------------------"
+sleep 5s
+printf "\n"
+printf "\n"
+
+echo "Preparing System"
+echo "----------------"
+printf "\n"
+printf "\n"
+
+#Check Network Connectivity
+echo "Checking Connectivity"
+echo "---------------------"
+sleep 2s
+
+if ping -q -c 1 -W 1 8.8.8.8 >/dev/null; 
+	then
+		echo "IPv4 is up."
+	else
+		echo "IPv4 is down."
+		echo "This script needs internet connectivity to run to completion."
+		sleep 5s
+		exit 1 # Exit with general error
+fi
+
+
+if ping -q -c 1 -W 1 google.com >/dev/null; 
+	then
+		echo "Name resolution is working"
+	else
+		echo "Name resolution is not working."
+		echo "This is needed by the script to run to completion."
+		sleep 5s
+		exit 1 # Exit with general error
+fi
+
+sleep 3s
+set -x                               #Sends output to terminal
+(apt update
+apt upgrade -y
+apt autoremove -y
+apt autoclean -y) 
+{ set +x; } 2>/dev/null              #Stops output to terminal and hides set+x from output
+
+printf "\n"
+
+#Prompt to define temporary location
+while true 
+	do
+		read -p "Please define a temporary location [/tmp]: `echo $'\n> '`" TEMP
+        TEMP=${TEMP:-/tmp}                                                          #Used to provide default option
+			read -p "You selected '$TEMP' is this correct?(y/n)" yn
+			case $yn in
+            [Yy]* ) break;;
+            [Nn]* ) echo "Please try again:";sleep 2s;;
+                * ) echo "Please answer yes or no.";;
+            esac
+done
+
+mkdir $TEMP 2>/dev/null >/dev/null
+
+
+if [ "${TEMP: -1}" == "/" ]  #Checks if there is a forward slash in the path and if there is removes it
+	then 
+	TEMP=${TEMP%?}
+fi
+
+exec > >(tee -i $TEMP/backup_log_$BEGIN.txt)  #This file will log everything
+exec 2>&1
+
+echo "Verifying if needed packages are installed."
+echo "-------------------------------------------"
+sleep 5s
+
+# Checking to see if the Borg package is installed on your system
+# Used for backing up the files and their deduplication
+BORG='borgbackup'     
+echo "Checking to see if '$BORG' is installed on your system."
+printf "\n"
+sleep 2s
+
+dpkg -s $BORG 2>/dev/null >/dev/null
+
+if [ $? -ne 0 ]
+
+	# If success
+	then
+		echo "The '$BORG' package is not installed on your system."
+		echo "Package '$BORG' will now be installed."
+		printf "\n"
+		sleep 2s
+		INSTALL=$
+		set -x                               #Sends output to terminal
+		(apt install $BORG -y) 
+		{ set +x; } 2>/dev/null              #Stops output to terminal and hides set+x from output
+
+			if [ $? -eq 0 ]
+
+				# If success
+				then
+					echo "The '$BORG' package was installed successfully."
+					echo "..."
+					printf "\n"
+					sleep 2s
+				# If failure
+				else
+					echo "Install of '$BORG' package failed."
+					printf "\n"
+					echo "Please try installing it manually."
+					printf "\n"
+					sleep 5s
+					exit 1 # Exit with general error
+			fi
+
+	else
+	echo "The '$BORG' package is installed on your system."
+	echo "..."
+	printf "\n"
+	sleep 2s
+fi
+
+printf "\n"
+
+# Checking to see if the Python3 is installed on your system
+# Used to run PIP
+PYTHON='python3'     
+echo "Checking to see if '$PYTHON' is installed on your system."
+printf "\n"
+sleep 2s
+
+dpkg -s $PYTHON 2>/dev/null >/dev/null
+
+if [ $? -ne 0 ]
+
+	# If success
+	then
+		echo "The '$PYTHON' package is not installed on your system."
+		echo "Package '$PYTHON' will now be installed."
+		printf "\n"
+		sleep 2s
+		INSTALL=$
+		set -x                               #Sends output to terminal
+		(apt install $PYTHON -y) 
+		{ set +x; } 2>/dev/null              #Stops output to terminal and hides set+x from output
+
+			if [ $? -eq 0 ]
+
+				# If success
+				then
+					echo "The '$PYTHON' package was installed successfully."
+					echo "..."
+					printf "\n"
+					sleep 2s
+				# If failure
+				else
+					echo "Install of '$PYTHON' package failed."
+					printf "\n"
+					echo "Please try installing it manually."
+					printf "\n"
+					sleep 5s
+					exit 1 # Exit with general error
+			fi
+	else
+		echo "The '$PYTHON' package is installed on your system."
+		echo "..."
+		printf "\n"
+		sleep 2s
+fi
+
+printf "\n"
+
+# Checking to see if the PIP package manager is installed on your system
+# Used to install borgmatic
+PIP='python3-pip'     
+echo "Checking to see if '$PIP' is installed on your system."
+printf "\n"
+sleep 2s
+
+dpkg -s $PIP 2>/dev/null >/dev/null
+
+if [ $? -ne 0 ]
+
+	# If success
+	then
+		echo "The '$PIP' package is not installed on your system."
+		echo "Package '$PIP' will now be installed."
+		printf "\n"
+		sleep 2s
+		INSTALL=$
+		set -x                               #Sends output to terminal
+		(apt install $PIP -y) 
+		{ set +x; } 2>/dev/null              #Stops output to terminal and hides set+x from output
+
+			if [ $? -eq 0 ]
+
+				# If success
+				then
+					echo "The '$PIP' package was installed successfully."
+					echo "..."
+					printf "\n"
+					sleep 2s
+				# If failure
+				else
+					echo "Install of '$PIP' package failed."
+					printf "\n"
+					echo "Please try installing it manually."
+					printf "\n"
+					sleep 5s
+					exit 1 # Exit with general error
+			fi
+	else
+		echo "The '$PIP' package is installed on your system."
+		echo "..."
+		printf "\n"
+		sleep 2s
+fi
+
+printf "\n"
+printf "\n"
+
+# Checking to see if the WGET package manager is installed on your system
+# Used to install wget
+WGET='wget'     
+echo "Checking to see if '$WGET' is installed on your system."
+printf "\n"
+sleep 1s
+
+dpkg -s $WGET 2>/dev/null >/dev/null
+
+if [ $? -ne 0 ]
+
+	# If success
+	then
+		echo "The '$WGET' package is not installed on your system."
+		echo "Package '$WGET' will now be installed."
+		printf "\n"
+		sleep 3s
+		INSTALL=$
+		set -x                               #Sends output to terminal
+		(apt install $WGET -y) 
+		{ set +x; } 2>/dev/null              #Stops output to terminal and hides set+x from output
+
+			if [ $? -eq 0 ]
+
+				# If success
+				then
+					echo "The '$WGET' package was installed successfully."
+					echo "..."
+					printf "\n"
+					sleep 2s
+				# If failure
+				else
+					echo "Install of '$WGET' package failed."
+					printf "\n"
+					echo "Please try installing it manually."
+					printf "\n"
+					exit 1 # Exit with general error
+			fi
+
+	else
+		echo "The '$WGET' package is installed on your system."
+		echo "..."
+		printf "\n"
+		sleep 2s
+fi
+
+printf "\n"
+
+
+# Checking to see if the Expect is installed on your system
+# Used to install expect
+EXPECT='expect'     
+echo "Checking to see if '$EXPECT' is installed on your system."
+printf "\n"
+sleep 1s
+
+dpkg -s $EXPECT 2>/dev/null >/dev/null
+
+if [ $? -ne 0 ]
+
+	# If success
+	then
+		echo "The '$EXPECT' package is not installed on your system."
+		echo "Package '$EXPECT' will now be installed."
+		printf "\n"
+		sleep 3s
+		INSTALL=$
+		set -x                               #Sends output to terminal
+		(apt install $EXPECT -y) 
+		{ set +x; } 2>/dev/null              #Stops output to terminal and hides set+x from output
+
+			if [ $? -eq 0 ]
+
+				# If success
+				then
+					echo "The '$EXPECT' package was installed successfully."
+					echo "..."
+					printf "\n"
+					sleep 2s
+				# If failure
+				else
+					echo "Install of '$EXPECT' package failed."
+					printf "\n"
+					echo "Please try installing it manually."
+					printf "\n"
+					exit 1 # Exit with general error
+			fi
+	else
+		echo "The '$EXPECT' package is installed on your system."
+		echo "..."
+		printf "\n"
+		sleep 2s
+fi
+
+printf "\n"
+
+# Checking to see if the Borgmatic package is installed on your system
+# Simplifies borg usage
+BORGMATIC='borgmatic'     
+echo "Checking to see if '$BORGMATIC' is installed on your system."
+printf "\n"
+sleep 2s
+
+BORGMATIC2=$(pip3 list --format=columns | grep $BORGMATIC)
+
+if [ $? -ne 0 ]
+
+	# If success
+	then
+		echo "The '$BORGMATIC' module is not installed on your system."
+		echo "Package '$BORGMATIC' will now be installed."
+		printf "\n"
+		sleep 2s
+		INSTALL=$
+		set -x                               #Sends output to terminal
+		(pip3 install --user --upgrade borgmatic) 
+		{ set +x; } 2>/dev/null              #Stops output to terminal and hides set+x from output
+
+			if [ $? -eq 0 ]
+
+				# If success
+				then
+					echo "The '$BORGMATIC' module was installed successfully."
+					echo "..."
+					printf "\n"
+					sleep 2s
+				# If failure
+				else
+					echo "Install of '$BORGMATIC' module failed."
+					printf "\n"
+					echo "Please try installing it manually."
+					printf "\n"
+					sleep 5s
+					exit 1 # Exit with general error
+			fi
+	else
+		echo "The '$BORGMATIC' module is installed on your system."
+		echo "..."
+		printf "\n"
+		sleep 2s
+fi
+
+printf "\n"
+
+echo "*******************************"
+echo "Finished checking for packages."
+echo "*******************************"
+printf "\n"
+printf "\n"
+sleep 2s
+
+#############################################################################--Validation Script--#######################################################################################################################
+
+# Clear terminal window
+clear
+
+echo "Verifying Configuration Files"
+echo "-----------------------------"
+
+#Create borgmatic config file directory
+mkdir /etc/borgmatic.d/ 2>/dev/null >/dev/null
+
+#Add Borgmatic to PATH
+PATH="/root/.local/bin:${PATH}"
+sed -i '$ d' /etc/environment
+echo "PATH=$PATH:/root/.local/bin" >> /etc/environment
+echo "PATH=$PATH:/root/.local/bin" >> ~/.bashrc
+
+#Prompt to define repo location
+while true 
+	do
+		read -p "Please enter a location for the backup repository [/BACKUP]: `echo $'\n> '`" MNT
+		MNT=${MNT:-/BACKUP}                                                          #Used to provide default option
+		read -p "You selected '$MNT' is this correct?(y/n)" yn
+			case $yn in
+			[Yy]* ) break;;
+			[Nn]* ) echo "Please try again:";sleep 2s;;
+				* ) echo "Please answer yes or no.";;
+			esac
+done
+
+mkdir $MNT 2>/dev/null >/dev/null
+chmod 777 $MNT	
+	
+if [ "${MNT: -1}" == "/" ]  #Checks if there is a forward slash in the path and if there is removes it
+	then 
+		MNT=${MNT%?}
+fi
+
+#Prompt to define repo name
+while true 
+	do
+		read -p "Please enter a name for your backup repository: `echo $'\n> '`" REPO
+		read -p "You entered '$REPO' is this correct?(y/n)" yn
+			case $yn in
+			[Yy]* ) break;;
+			[Nn]* ) echo "Please try again:";sleep 2s;;
+				* ) echo "Please answer yes or no.";;
+			esac
+done
+
+#Prompt to define encryption key
+read -s -p "Please enter the repository encryption key: `echo $'\n> '`" ENCRYPT1
+read -s -p "Please confirm the encryption key: `echo $'\n> '`" ENCRYPT2
+
+# check if keys match and if not ask again
+while [ "$ENCRYPT1" != "$ENCRYPT2" ];
+	do
+		echo "Key Mismatch. Please try again."
+		read -s -p "Please enter the repository encryption key: `echo $'\n> '`" ENCRYPT1
+		read -s -p "Please confirm the encryption key: `echo $'\n> '`" ENCRYPT2
+done
+
+ENCRYPT=$ENCRYPT2
+
+#Repo Creation
+echo "Creating Repos"
+echo "--------------"
+  /usr/bin/expect <(cat << EOF
+spawn borg init --encryption=repokey-blake2 $MNT/$REPO
+expect "Enter new passphrase:"
+send "$ENCRYPT\r"
+expect "Enter same passphrase again:"
+send "$ENCRYPT\r"
+expect "Do you want your passphrase to be displayed for verification?*:"
+send "n\r"
+interact
+EOF
+)
+
+echo "Checking to see if repo was created on your system."
+printf "\n"
+sleep 1s
+
+ /usr/bin/expect <(cat << EOF
+spawn borg info $MNT/$REPO 
+expect "Enter passphrase for key $MNT/$REPO:"
+send "$ENCRYPT\r"
+interact
+EOF
+)
+
+if [ $? -ne 0 ]
+
+	# If success
+	then
+		echo "Repo creation failed please try creating it manually."
+		printf "\n"
+		sleep 3s
+		exit 1 # Exit with general error
+
+	# If failure
+	else
+		echo "Repo created successfully."
+		printf "\n"
+		sleep 3s
+fi
+
+borg key export $MNT/$REPO $TEMP/$REPO_Key.txt
+printf "\n"
+echo "Your encryption key for this repo is:"
+printf "\n"
+printf "\n"
+cat $TEMP/$REPO_Key.txt
+printf "\n"
+echo "Please save the key or the file with it located in $TEMP/$REPO_Key.txt"
+read -p "Press enter to continue"
+
+#Specify containers location
+while true 
+	do
+		read -p "Please enter the location of your LXD containers [/var/lib/lxd/containers]: `echo $'\n> '`" LXD
+		LXD=${LXD:-/var/lib/lxd/containers}                                                          #Used to provide default option
+		read -p "You selected '$LXD' is this correct?(y/n)" yn
+			case $yn in
+			[Yy]* ) cd $LXD;
+						if [ $? -ne 0 ]
+							# If success
+							then
+								echo "Directory does not exist. Is LXD installed in your system?."
+								printf "\n"
+								sleep 5s
+								exit 1   # Exit with general error
+							else
+								echo "Directory found. Resuming script."
+						fi;
+					break;;
+			[Nn]* ) echo "Please try again:";sleep 2s;;
+				* ) echo "Please answer yes or no.";;
+			esac          
+done
+
+if [ "${LXD: -1}" == "/" ]  #Checks if there is a forward slash in the path and if there is removes it
+	then 
+		LXD=${LXD%?}
+fi
+
+cd $LXD
+for i in * 
+	do
+		NAME="$i"                   # The Container Name - Used to categorize backups
+
+		# Filename with no format (container_name.snapshot-backup)
+		FILENAME_NOFORMAT="snapshot-backup-$NAME"
+
+		# Full Filename with format (container_name.snapshot-backup.format)
+		FILENAME="$FILENAME_NOFORMAT.tar.gz"
+
+		echo "Verifying Configuration file for $i"
+		echo "-----------------------------------"
+
+		# Location of LXD Containers
+		GLOBAL_LXD='$LXD/$i'
+
+		# Checking to see if borgmatic configuration files exist
+		echo "Checking for $i configuration file."
+		printf "\n"
+		sleep 1s
+		
+		BORGMATICCONF=$(ls -a /etc/borgmatic.d/ | grep $i.yaml)
+
+			if [ $? -ne 0 ]
+
+				# If success
+				then
+					echo "The borgmatic configuration file does not exist."
+					echo "The configuration file will now be generated."
+					printf "\n"
+					sleep 3s
+						set -x                               #Sends output to terminal
+						wget -P $TEMP https://raw.githubusercontent.com/The-Inamati/LXD-Backup-Script/master/Borgmatic_Script
+						{ set +x; } 2>/dev/null              #Stops output to terminal and hides set+x from output
+						mv $TEMP/Borgmatic_Script /etc/borgmatic.d/$i.yaml
+						# delete the first character from the string inside the variable 
+						MNT=${MNT#?}
+						TEMP=${TEMP#?}
+						sed -i -e "s/\${TEMP}/$TEMP/" -e "s/\${FILENAME_NOFORMAT}/$FILENAME_NOFORMAT/" -e "s/\${MNT}/$MNT/" -e "s/\${ENCRYPT}/$ENCRYPT/" /etc/borgmatic.d/$i.yaml   #Substitutes variables in downloaded configuration file
+
+							if [ $? -eq 0 ]
+
+								# If success
+								then
+									MNT="/$MNT"  #Puts the first character again
+									TEMP="/$TEMP"
+									echo "The configuration file was generated successfully."
+									echo "..."
+									printf "\n"
+									sleep 5s
+								# If failure
+								else
+									echo "Could not generate configuration file."
+									printf "\n"
+									echo "Please try doing it manually."
+									printf "\n"				
+									exit 1 # Exit with general error
+							fi
+				else
+					echo "A configuration file exists at '/etc/borgmatic.d/'"
+					echo "..."
+					printf "\n"
+					sleep 2s
+
+			fi
+
+				#Prompt to edit borgmatic configuration file
+				while true; 
+					do
+						read -p "Do you wish to edit the configuration file now?(y/n)" yn
+							case $yn in
+								[Yy]* ) nano /etc/borgmatic.d/$i.yaml;break;;
+								[Nn]* ) break;;
+									* ) echo "Please answer yes or no.";;
+							esac
+				done
+
+		#Configuration file validation
+		echo "Validating config file"
+		echo "----------------------"
+		sleep 2s
+
+		validate-borgmatic-config
+
+		while [ $? -ne 0 ]
+
+			do
+				printf "\n"
+				echo "Please verify the file something is not right."
+				sleep 5s
+				nano /etc/borgmatic.d/$i.yaml
+				
+				validate-borgmatic-config
+		done
+
+		printf "\n"
+		echo "File for $i validated successfully."
+		sleep 3s
+
+done
+          
+echo "Configuration Files Verified."
+echo "-----------------------------"     
+
+####-Definition of backup and notification settings
+
+#Clear the terminal
+clear
+
+unset yn
+
+#Menu for notification and backup settings
+while [[ $yn != y ]]
+	do
+		# Parent menu items declared here
+		PS3="Please select your backup preference: "
+			select BACKUP in Local RClone Wasabi
+				do
+					# case statement to compare the first menu items
+					case $BACKUP in
+						[Local]*) echo "You selected Local";sleep 2s;break;;
+						[RClone]*) echo "You selected RClone";sleep 2s;break;;
+						[Wasabi]*) echo "You selected Wasabi";break;sleep 2s;;
+								*) echo "Invalid Option";;
+					esac
+			done
+
+		#Clear the terminal
+		clear
+
+		# Parent menu items declared here
+		PS3="Please select your notification preference: "
+			select NOTIF in Mutt Pushover
+				do
+					# case statement to compare the first menu items
+					case $NOTIF in
+						[Mutt]*) echo "You selected Mutt"; sleep 2s;break;;
+						[Pushover]*) echo "You selected Pushover"; sleep 2s;break;;
+								*) echo "Invalid Option";;
+					esac
+			done
+
+		#Clear the terminal
+		clear
+
+			while true
+				do
+					echo "You selected $BACKUP and $NOTIF."
+					read -p "Are these options correct? (y/n)" yn
+						case $yn in
+							[Yy]* ) break;;
+							[Nn]* ) echo "Please choose again.";sleep 2s;break;;
+								* ) echo "Please answer yes or no.";;
+						esac
+			done
+done
+
+#Clear the terminal
+clear
+
+DIR=$(dirname "$0") #Used to get path where this script is being executed
+
+set -x                               #Sends output to terminal
+wget -P $DIR https://raw.githubusercontent.com/The-Inamati/LXD-Backup-Script/master/${BACKUP}_${NOTIF}
+{ set +x; } 2>/dev/null              #Stops output to terminal and hides set+x from output
+
+source ${BACKUP}_${NOTIF}
+
+#Continues in backup file chosen by user
