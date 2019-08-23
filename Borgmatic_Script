@@ -10,7 +10,7 @@ location:
     # repositories are backed up to in sequence. See ssh_command for SSH options like
     # identity file or port.
     repositories:
-        - /${MNT}
+        - /${MNT}/${REPO}
 
     # Stay in same file system (do not cross mount points). Defaults to false.
     #one_file_system: true
@@ -227,16 +227,16 @@ consistency:
 # prevent potential shell injection or privilege escalation.
 hooks:
     # List of one or more shell commands or scripts to execute before creating a backup.
-    before_backup:
+    #before_backup:
         - echo "Starting a backup job."
 
     # List of one or more shell commands or scripts to execute after creating a backup.
-    after_backup:
+    #after_backup:
         - echo "Backup created."
 
     # List of one or more shell commands or scripts to execute when an exception occurs
     # during a backup or when running a hook.
-    on_error:
+    #on_error:
         - echo "Error while creating a backup or running a hook."
 
     # Umask used when executing hooks. Defaults to the umask that borgmatic is run with.
