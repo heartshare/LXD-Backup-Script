@@ -460,7 +460,7 @@ printf "\n"
 printf "\n"
 sleep 2s
 
-#############################################################################--Validation Script--#######################################################################################################################
+########--Validation--########
 
 # Clear terminal window
 clear
@@ -476,106 +476,6 @@ PATH="/root/.local/bin:${PATH}"
 sed -i '$ d' /etc/environment
 echo "PATH=$PATH:/root/.local/bin" >> /etc/environment
 echo "PATH=$PATH:/root/.local/bin" >> ~/.bashrc
-
-#Prompt to define repo location
-while true 
-	do
-		read -p "Please enter a location for the backup repository [/BACKUP]: `echo $'\n> '`" MNT
-		MNT=${MNT:-/BACKUP}                                                          #Used to provide default option
-		read -p "You selected '$MNT' is this correct?(y/n)" yn
-			case $yn in
-			[Yy]* ) break;;
-			[Nn]* ) echo "Please try again:";sleep 2s;;
-				* ) echo "Please answer yes or no.";;
-			esac
-done
-
-mkdir $MNT 2>/dev/null >/dev/null
-chmod 777 $MNT	
-	
-if [ "${MNT: -1}" == "/" ]  #Checks if there is a forward slash in the path and if there is removes it
-	then 
-		MNT=${MNT%?}
-fi
-
-#Prompt to define repo name
-while true 
-	do
-		read -p "Please enter a name for your backup repository: `echo $'\n> '`" REPO
-		read -p "You entered '$REPO' is this correct?(y/n)" yn
-			case $yn in
-			[Yy]* ) break;;
-			[Nn]* ) echo "Please try again:";sleep 2s;;
-				* ) echo "Please answer yes or no.";;
-			esac
-done
-
-#Prompt to define encryption key
-read -s -p "Please enter the repository encryption key: `echo $'\n> '`" ENCRYPT1
-read -s -p "Please confirm the encryption key: `echo $'\n> '`" ENCRYPT2
-
-# check if keys match and if not ask again
-while [ "$ENCRYPT1" != "$ENCRYPT2" ];
-	do
-		echo "Key Mismatch. Please try again."
-		read -s -p "Please enter the repository encryption key: `echo $'\n> '`" ENCRYPT1
-		read -s -p "Please confirm the encryption key: `echo $'\n> '`" ENCRYPT2
-done
-
-ENCRYPT=$ENCRYPT2
-
-#Repo Creation
-echo "Creating Repos"
-echo "--------------"
-  /usr/bin/expect <(cat << EOF
-spawn borg init --encryption=repokey-blake2 $MNT/$REPO
-expect "Enter new passphrase:"
-send "$ENCRYPT\r"
-expect "Enter same passphrase again:"
-send "$ENCRYPT\r"
-expect "Do you want your passphrase to be displayed for verification?*:"
-send "n\r"
-interact
-EOF
-)
-
-echo "Checking to see if repo was created on your system."
-printf "\n"
-sleep 1s
-
- /usr/bin/expect <(cat << EOF
-spawn borg info $MNT/$REPO 
-expect "Enter passphrase for key $MNT/$REPO:"
-send "$ENCRYPT\r"
-interact
-EOF
-)
-
-if [ $? -ne 0 ]
-
-	# If success
-	then
-		echo "Repo creation failed please try creating it manually."
-		printf "\n"
-		sleep 3s
-		exit 1 # Exit with general error
-
-	# If failure
-	else
-		echo "Repo created successfully."
-		printf "\n"
-		sleep 3s
-fi
-
-borg key export $MNT/$REPO $TEMP/$REPO_Key.txt
-printf "\n"
-echo "Your encryption key for this repo is:"
-printf "\n"
-printf "\n"
-cat $TEMP/$REPO_Key.txt
-printf "\n"
-echo "Please save the key or the file with it located in $TEMP/$REPO_Key.txt"
-read -p "Press enter to continue"
 
 #Specify containers location
 while true 
