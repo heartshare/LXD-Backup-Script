@@ -388,7 +388,7 @@ for i in *
 				echo "A log file exists in $TEMP/backup_log_$BEGIN.txt"
 				sleep 5s
 				exit 1 # Exit with general error
-						
+done				
 #Backup the Containers
 set -x
 borgmatic --verbosity 1
