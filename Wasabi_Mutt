@@ -464,6 +464,12 @@ for i in *
 				echo "..."
 				printf "\n"
 				sleep 5s # Wait 5 seconds
+				
+				# Filename with no format (container_name.snapshot-backup)
+				FILENAME_NOFORMAT="snapshot-backup-$NAME"
+
+				# Full Filename with format (container_name.snapshot-backup.format)
+				FILENAME="$FILENAME_NOFORMAT.tar.gz"
 		
 				echo "The snapshot backup filename will be: $FILENAME"
 				echo "Stored temporarily within: $TEMP"
