@@ -153,7 +153,7 @@ for i in *
 
 		# Full Filename with format (container_name.snapshot-backup.format)
 		FILENAME="$FILENAME_NOFORMAT.tar.gz"
-
+		
 		echo "Verifying Configuration file for $i"
 		echo "-----------------------------------"
 
@@ -429,6 +429,8 @@ echo "Continuing with backup in 5 seconds."
 echo "------------------------------------"
 sleep 5s 
 
+unset FILENAME
+unset FILENAME_NOFORMAT
 
 ####--Backup--####
 
