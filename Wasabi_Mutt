@@ -332,7 +332,7 @@ sleep 5s
 cd $LXD
 for i in * 
 	do
-		NAME=$i
+		NAME="$i"
 		# Check if the required arguments are not empty
 		if [ "$i" == '' ];
 			# If none of these arguments are empty, the script can proceed
@@ -393,7 +393,7 @@ borgmatic --verbosity 1
 cd $LXD
 for i in * 
 	do        
-		NAME=$i
+		NAME="$i"
 		# Now delete the 'lxd-image-backup-$NAME' image
 		echo "Deleting 'lxd-image-backup-$NAME' image from server."
 		lxc image delete lxd-image-backup-$NAME
