@@ -338,10 +338,17 @@ for i in *
 	do
 
 		# Check if the required arguments are not empty
-		if [ "$i" != '' ];
+		if [ "$i" == '' ];
 
 			# If none of these arguments are empty, the script can proceed
 			then
+				echo "One or more arguments are empty."
+				echo "A log file exists in $TEMP/backup_log_$BEGIN.txt"
+				sleep 5s
+				exit 1 # Exit with general error
+			
+			# If one or more arguments are empty, produce an error
+			else
 				# Clear terminal window
 				clear
 
@@ -382,12 +389,6 @@ for i in *
 				#lxc image export lxd-image-backup-$NAME .
 				lxc image export lxd-image-backup-$NAME $TEMP/$FILENAME_NOFORMAT
 			fi
-			# If one or more arguments are empty, produce an error
-			else
-				echo "One or more arguments are empty."
-				echo "A log file exists in $TEMP/backup_log_$BEGIN.txt"
-				sleep 5s
-				exit 1 # Exit with general error
 done				
 #Backup the Containers
 set -x
