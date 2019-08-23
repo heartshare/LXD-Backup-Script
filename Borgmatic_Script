@@ -225,19 +225,19 @@ consistency:
 # IMPORTANT: All provided commands and scripts are executed with user permissions of borgmatic.
 # Do not forget to set secure permissions on this file as well as on any script listed (chmod 0700) to
 # prevent potential shell injection or privilege escalation.
-hooks:
+#hooks:
     # List of one or more shell commands or scripts to execute before creating a backup.
     #before_backup:
-        - echo "Starting a backup job."
+ #       - echo "Starting a backup job."
 
     # List of one or more shell commands or scripts to execute after creating a backup.
     #after_backup:
-        - echo "Backup created."
+  #      - echo "Backup created."
 
     # List of one or more shell commands or scripts to execute when an exception occurs
     # during a backup or when running a hook.
     #on_error:
-        - echo "Error while creating a backup or running a hook."
+#        - echo "Error while creating a backup or running a hook."
 
     # Umask used when executing hooks. Defaults to the umask that borgmatic is run with.
     #umask: 0077
