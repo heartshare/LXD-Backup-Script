@@ -316,10 +316,10 @@ mkdir -p ~/.mutt/cache #Creates cache directory for Mutt
 
 echo "Mutt was intalled and configured successfully." 
 echo "Email notifications were configured with settings indicated in the attachment." | mutt  -s "Backup Test Email" $MAIL -a ~/.muttrc  #email notification
-echo "A test email was just sent with the details you specified. Please confirm you received it."
-echo " In case you don't receive it please check your Mutt configuration at ~/.muttrc."
-echo "The email may also be greylisted. Please try again with the command shown below after the script finishes."
-echo "echo "Body Text" | mutt -s "Subject" email@mail.domain.com -a ~/.muttrc"
+echo "A test email was just sent with the details you specified. Please confirm you received it.
+In case you don't receive it please check your Mutt configuration at ~/.muttrc.
+The email may also be greylisted. Please try again with the command shown below after the script finishes. 
+<echo "Body Text" | mutt -s "Subject" email@mail.domain.com -a ~/.muttrc>"
 echo "Press enter to continue"
 		
 echo "Continuing with backup in 5 seconds."
@@ -327,19 +327,14 @@ echo "------------------------------------"
 sleep 5s 
 
 
-#############################################################################################--BACKUP SCRIPT--#####################################################################################################################                
-#Variables that carry over from Install
-# $TEMP  $FILENAME_NOFORMAT  $NAME  $LXD  $FILENAME $BEGIN
-
-#Adicionar for i in * neste script em relação aos containers
+####--Backup--####
 
 cd $LXD
 for i in * 
+NAME=$i
 	do
-
 		# Check if the required arguments are not empty
 		if [ "$i" == '' ];
-
 			# If none of these arguments are empty, the script can proceed
 			then
 				echo "One or more arguments are empty."
@@ -397,8 +392,8 @@ borgmatic --verbosity 1
       
 cd $LXD
 for i in * 
-	do
-            
+NAME=$i
+	do        
 		# Now delete the 'lxd-image-backup-$NAME' image
 		echo "Deleting 'lxd-image-backup-$NAME' image from server."
 		lxc image delete lxd-image-backup-$NAME
