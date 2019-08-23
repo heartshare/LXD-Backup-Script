@@ -214,7 +214,7 @@ for i in *
 					do
 						read -p "Do you wish to edit the configuration file now?(y/n)" yn
 							case $yn in
-								[Yy]* ) nano /etc/borgmatic.d/$i.yaml;break;;
+								[Yy]* ) vi /etc/borgmatic.d/$i.yaml;break;;
 								[Nn]* ) break;;
 									* ) echo "Please answer yes or no.";;
 							esac
