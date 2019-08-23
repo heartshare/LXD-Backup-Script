@@ -296,7 +296,7 @@ done
 #Prompt to define SMTP URL
 while true 
 	do
-		read -p "Please indicate the URL to your SMTP server in the following format (smtp://mail.domain.com:587): `echo $'\n> '`" SMTP_URL
+		read -p "Please indicate the URL to your SMTP server in the following format (mail.domain.com:587): `echo $'\n> '`" SMTP_URL
 		read -p "You entered '$SMTP_URL' is this correct?(y/n)" yn
 			case $yn in
 			[Yy]* ) break;;
@@ -381,8 +381,7 @@ for i in *
 				echo "Exporting 'lxd-image-backup-$NAME' image in this location: '$TEMP/$FILENAME'."
 				#lxc image export lxd-image-backup-$NAME .
 				lxc image export lxd-image-backup-$NAME $TEMP/$FILENAME_NOFORMAT
-			fi
-
+			
 			# If one or more arguments are empty, produce an error
 			else
 				echo "One or more arguments are empty."
