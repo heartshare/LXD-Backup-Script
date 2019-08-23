@@ -141,6 +141,109 @@ done
 
 ENCRYPT=$ENCRYPT2
 
+#####--Validation for Borgmatic
+
+cd $LXD
+for i in * 
+	do
+		NAME="$i"                   # The Container Name - Used to categorize backups
+
+		# Filename with no format (container_name.snapshot-backup)
+		FILENAME_NOFORMAT="snapshot-backup-$NAME"
+
+		# Full Filename with format (container_name.snapshot-backup.format)
+		FILENAME="$FILENAME_NOFORMAT.tar.gz"
+
+		echo "Verifying Configuration file for $i"
+		echo "-----------------------------------"
+
+		# Location of LXD Containers
+		GLOBAL_LXD='$LXD/$i'
+
+		# Checking to see if borgmatic configuration files exist
+		echo "Checking for $i configuration file."
+		printf "\n"
+		sleep 1s
+		
+		BORGMATICCONF=$(ls -a /etc/borgmatic.d/ | grep $i.yaml)
+
+			if [ $? -ne 0 ]
+
+				# If success
+				then
+					echo "The borgmatic configuration file does not exist."
+					echo "The configuration file will now be generated."
+					printf "\n"
+					sleep 3s
+						set -x                               #Sends output to terminal
+						wget -P $TEMP https://raw.githubusercontent.com/The-Inamati/LXD-Backup-Script/master/Borgmatic_Script
+						{ set +x; } 2>/dev/null              #Stops output to terminal and hides set+x from output
+						mv $TEMP/Borgmatic_Script /etc/borgmatic.d/$i.yaml
+						# delete the first character from the string inside the variable 
+						MNT=${MNT#?}
+						TEMP=${TEMP#?}
+						sed -i -e "s/\${TEMP}/$TEMP/" -e "s/\${FILENAME_NOFORMAT}/$FILENAME_NOFORMAT/" -e "s/\${MNT}/$MNT/" -e "s/\${ENCRYPT}/$ENCRYPT/" /etc/borgmatic.d/$i.yaml   #Substitutes variables in downloaded configuration file
+
+							if [ $? -eq 0 ]
+
+								# If success
+								then
+									MNT="/$MNT"  #Puts the first character again
+									TEMP="/$TEMP"
+									echo "The configuration file was generated successfully."
+									echo "..."
+									printf "\n"
+									sleep 5s
+								# If failure
+								else
+									echo "Could not generate configuration file."
+									printf "\n"
+									echo "Please try doing it manually."
+									printf "\n"				
+									exit 1 # Exit with general error
+								fi
+				else
+					echo "A configuration file exists at '/etc/borgmatic.d/'"
+					echo "..."
+					printf "\n"
+					sleep 2s
+				fi
+
+				#Prompt to edit borgmatic configuration file
+				while true; 
+					do
+						read -p "Do you wish to edit the configuration file now?(y/n)" yn
+							case $yn in
+								[Yy]* ) nano /etc/borgmatic.d/$i.yaml;break;;
+								[Nn]* ) break;;
+									* ) echo "Please answer yes or no.";;
+							esac
+				done
+
+		#Configuration file validation
+		echo "Validating config file"
+		echo "----------------------"
+		sleep 2s
+
+		validate-borgmatic-config
+
+			while [ $? -ne 0 ]
+
+				do
+					printf "\n"
+					echo "Please verify the file something is not right."
+					sleep 5s
+					nano /etc/borgmatic.d/$i.yaml
+				
+					validate-borgmatic-config
+			done
+
+		printf "\n"
+		echo "File for $i validated successfully."
+		sleep 3s
+done
+
+
 #Repo Creation
 echo "Creating Repos"
 echo "--------------"
