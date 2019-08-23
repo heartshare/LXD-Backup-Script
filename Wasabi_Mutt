@@ -381,16 +381,14 @@ for i in *
 				echo "Exporting 'lxd-image-backup-$NAME' image in this location: '$TEMP/$FILENAME'."
 				#lxc image export lxd-image-backup-$NAME .
 				lxc image export lxd-image-backup-$NAME $TEMP/$FILENAME_NOFORMAT
-			
+			fi
 			# If one or more arguments are empty, produce an error
 			else
 				echo "One or more arguments are empty."
 				echo "A log file exists in $TEMP/backup_log_$BEGIN.txt"
 				sleep 5s
 				exit 1 # Exit with general error
-			fi
-
-			
+						
 #Backup the Containers
 set -x
 borgmatic --verbosity 1
