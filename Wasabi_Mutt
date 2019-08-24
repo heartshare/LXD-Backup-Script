@@ -115,187 +115,19 @@ while true;
 			esac
 done
 
-#Prompt to define repo name
-while true 
-	do
-		read -p "Please enter a name for your backup repository: `echo $'\n> '`" REPO
-		read -p "You entered '$REPO' is this correct?(y/n)" yn
-			case $yn in
-			[Yy]* ) break;;
-			[Nn]* ) echo "Please try again:";sleep 2s;;
-				* ) echo "Please answer yes or no.";;
-			esac
-done
-
 #Prompt to define encryption key
-read -s -p "Please enter the repository encryption key: `echo $'\n> '`" ENCRYPT1
-read -s -p "Please confirm the encryption key: `echo $'\n> '`" ENCRYPT2
+read -s -p "Please enter the passphrase for your backup repositories: `echo $'\n> '`" ENCRYPT1
+read -s -p "Please confirm the passphrase: `echo $'\n> '`" ENCRYPT2
 
 # check if keys match and if not ask again
 while [ "$ENCRYPT1" != "$ENCRYPT2" ];
 	do
 		echo "Key Mismatch. Please try again."
-		read -s -p "Please enter the repository encryption key: `echo $'\n> '`" ENCRYPT1
-		read -s -p "Please confirm the encryption key: `echo $'\n> '`" ENCRYPT2
+		read -s -p "Please enter the passphrase for your backup repositories: `echo $'\n> '`" ENCRYPT1
+		read -s -p "Please confirm the passphrase: `echo $'\n> '`" ENCRYPT2
 done
 
 ENCRYPT=$ENCRYPT2
-
-#####--Validation for Borgmatic
-
-cd $LXD
-for i in * 
-	do
-		NAME="$i"                   # The Container Name - Used to categorize backups
-
-		# Filename with no format (container_name.snapshot-backup)
-		FILENAME_NOFORMAT="snapshot-backup-$NAME"
-
-		# Full Filename with format (container_name.snapshot-backup.format)
-		FILENAME="$FILENAME_NOFORMAT.tar.gz"
-		
-		echo "Verifying Configuration file for $i"
-		echo "-----------------------------------"
-
-		# Location of LXD Containers
-		GLOBAL_LXD='$LXD/$i'
-
-		# Checking to see if borgmatic configuration files exist
-		echo "Checking for $i configuration file."
-		printf "\n"
-		sleep 1s
-		
-		BORGMATICCONF=$(ls -a /etc/borgmatic.d/ | grep $i.yaml)
-
-			if [ $? -ne 0 ]
-
-				# If success
-				then
-					echo "The borgmatic configuration file does not exist."
-					echo "The configuration file will now be generated."
-					printf "\n"
-					sleep 3s
-						set -x                               #Sends output to terminal
-						wget -P $TEMP https://raw.githubusercontent.com/The-Inamati/LXD-Backup-Script/master/Borgmatic_Script
-						{ set +x; } 2>/dev/null              #Stops output to terminal and hides set+x from output
-						mv $TEMP/Borgmatic_Script /etc/borgmatic.d/$i.yaml
-						# delete the first character from the string inside the variable 
-						MNT=${MNT#?}
-						TEMP=${TEMP#?}
-						sed -i -e "s/\${TEMP}/$TEMP/" -e "s/\${FILENAME_NOFORMAT}/$FILENAME_NOFORMAT/" -e "s/\${MNT}/$MNT/" -e "s/\${ENCRYPT}/$ENCRYPT/" -e"s/\${REPO}/$REPO/" /etc/borgmatic.d/$i.yaml   #Substitutes variables in downloaded configuration file
-
-							if [ $? -eq 0 ]
-
-								# If success
-								then
-									MNT="/$MNT"  #Puts the first character again
-									TEMP="/$TEMP"
-									echo "The configuration file was generated successfully."
-									echo "..."
-									printf "\n"
-									sleep 5s
-								# If failure
-								else
-									echo "Could not generate configuration file."
-									printf "\n"
-									echo "Please try doing it manually."
-									printf "\n"				
-									exit 1 # Exit with general error
-								fi
-				else
-					echo "A configuration file exists at '/etc/borgmatic.d/'"
-					echo "..."
-					printf "\n"
-					sleep 2s
-				fi
-
-				#Prompt to edit borgmatic configuration file
-				while true; 
-					do
-						read -p "Do you wish to edit the configuration file now?(y/n)" yn
-							case $yn in
-								[Yy]* ) vi /etc/borgmatic.d/$i.yaml;break;;
-								[Nn]* ) break;;
-									* ) echo "Please answer yes or no.";;
-							esac
-				done
-
-		#Configuration file validation
-		echo "Validating config file"
-		echo "----------------------"
-		sleep 2s
-
-		validate-borgmatic-config
-
-			while [ $? -ne 0 ]
-
-				do
-					printf "\n"
-					echo "Please verify the file something is not right."
-					sleep 5s
-					nano /etc/borgmatic.d/$i.yaml
-				
-					validate-borgmatic-config
-			done
-
-		printf "\n"
-		echo "File for $i validated successfully."
-		sleep 3s
-done
-
-
-#Repo Creation
-echo "Creating Repos"
-echo "--------------"
-  /usr/bin/expect <(cat << EOF
-spawn borg init --encryption=repokey-blake2 $MNT/$REPO
-expect "Enter new passphrase:"
-send "$ENCRYPT\r"
-expect "Enter same passphrase again:"
-send "$ENCRYPT\r"
-expect "Do you want your passphrase to be displayed for verification?*:"
-send "n\r"
-interact
-EOF
-)
-
-echo "Checking to see if repo was created on your system."
-printf "\n"
-sleep 1s
-
- /usr/bin/expect <(cat << EOF
-spawn borg info $MNT/$REPO 
-expect "Enter passphrase for key $MNT/$REPO:"
-send "$ENCRYPT\r"
-interact
-EOF
-)
-
-if [ $? -ne 0 ]
-
-	# If success
-	then
-		echo "Repo creation failed please try creating it manually."
-		printf "\n"
-		sleep 3s
-		exit 1 # Exit with general error
-
-	# If failure
-	else
-		echo "Repo created successfully."
-		printf "\n"
-		sleep 3s
-	fi
-
-borg key export $MNT/$REPO $TEMP/$REPO_Key.txt
-printf "\n"
-echo "Your encryption key for this repo is:"
-printf "\n"
-printf "\n"
-cat $TEMP/$REPO_Key.txt
-printf "\n"
-echo "Please save the key or the file with it located in $TEMP/$REPO_Key.txt"
-read -p "Press enter to continue"
 
 # Checking to see if the Mail package is installed on your system
 # Used for sending email confirmations of the backup process
@@ -429,17 +261,30 @@ echo "Continuing with backup in 5 seconds."
 echo "------------------------------------"
 sleep 5s 
 
-unset FILENAME
-unset FILENAME_NOFORMAT
-
 ####--Backup--####
+
+#Create borgmatic config file directory
+        mkdir /etc/borgmatic.d/ 2>/dev/null >/dev/null
+		mkdir /etc/borgmatic.d/keys 2>/dev/null >/dev/null
+		chmod 600 /etc/borgmatic.d 2>/dev/null >/dev/null
+		chmod 600 /etc/borgmatic.d/keys 2>/dev/null >/dev/null
 
 cd $LXD
 for i in * 
 	do
 		NAME="$i"
+		# Filename with no format (container_name.snapshot-backup)
+		FILENAME_NOFORMAT="snapshot-backup-$NAME"
+
+		# Full Filename with format (container_name.snapshot-backup.format)
+		FILENAME="$FILENAME_NOFORMAT.tar.gz"
+		
+		# Location of LXD Containers
+		GLOBAL_LXD='$LXD/$i'
+		
 		# Check if the required arguments are not empty
 		if [ "$i" == '' ];
+		
 			# If none of these arguments are empty, the script can proceed
 			then
 				echo "One or more arguments are empty."
@@ -449,6 +294,166 @@ for i in *
 			
 			# If one or more arguments are empty, produce an error
 			else
+			 
+				#Repo Creation
+				echo "Creating Repos"
+				echo "--------------"
+/usr/bin/expect <(cat << EOF                                        #Repo name same as container name
+spawn borg info $MNT/$i 
+expect "Enter passphrase for key $MNT/$i:"
+send "$ENCRYPT\r"
+interact
+EOF
+)
+				if [ $? -ne 0 ]
+
+					# If success
+					then
+						echo "New container detected repo creation will start."
+						printf "\n"
+						sleep 3s
+/usr/bin/expect <(cat << EOF
+spawn borg init --encryption=repokey-blake2 $MNT/$i
+expect "Enter new passphrase:"
+send "$ENCRYPT\r"
+expect "Enter same passphrase again:"
+send "$ENCRYPT\r"
+expect "Do you want your passphrase to be displayed for verification?*:"
+send "n\r"
+interact
+EOF
+)
+
+						echo "Checking to see if repo was created on your system."
+						printf "\n"
+						sleep 1s
+
+/usr/bin/expect <(cat << EOF
+spawn borg info $MNT/$i 
+expect "Enter passphrase for key $MNT/$i:"
+send "$ENCRYPT\r"
+interact
+EOF
+)
+
+						if [ $? -ne 0 ]
+
+							# If success
+							then
+								echo "Repo creation failed please try creating it manually."
+								printf "\n"
+								sleep 3s
+								exit 1 # Exit with general error
+
+							# If failure
+							else
+								echo "Repo created successfully."
+								printf "\n"
+								sleep 3s
+							fi
+
+						borg key export $MNT/$i /etc/borgmatic.d/keys/$i_Key.txt
+						printf "\n"
+						echo "Your encryption key for this repo is:"
+						printf "\n"
+						printf "\n"
+						cat $TEMP/$i_Key.txt
+						printf "\n"
+						echo "Please save the key or the file with it located in /etc/borgmatic.d/keys/$i_Key.txt"
+						echo "Key for $i exported successfully" | mail -s "Repo key for $i" $MAIL -a /etc/borgmatic.d/keys/$i_key.txt #adicionar total de tempo ao email
+						echo "This key was also sent to you by email"
+						read -p "Press enter to continue"
+					
+					fi
+					# If failure
+					else
+						echo "Repo for the container $i already exists.Resuming..."
+						printf "\n"
+						sleep 3s
+					fi
+								
+				# Checking to see if borgmatic configuration files exist
+				echo "Checking configuration file for $i."
+				printf "\n"
+				sleep 1s
+		
+				BORGMATICCONF=$(ls -a /etc/borgmatic.d/ | grep $i.yaml)
+
+				if [ $? -ne 0 ]
+
+					# If success
+					then
+						echo "The borgmatic configuration file does not exist."
+						echo "The configuration file will now be generated."
+						printf "\n"
+						sleep 3s
+						set -x                               #Sends output to terminal
+						wget -P $TEMP https://raw.githubusercontent.com/The-Inamati/LXD-Backup-Script/master/Borgmatic_Script
+						{ set +x; } 2>/dev/null              #Stops output to terminal and hides set+x from output
+						mv $TEMP/Borgmatic_Script /etc/borgmatic.d/$i.yaml
+						# delete the first character from the string inside the variable 
+						MNT=${MNT#?}
+						TEMP=${TEMP#?}
+						sed -i -e "s/\${TEMP}/$TEMP/" -e "s/\${FILENAME_NOFORMAT}/$FILENAME_NOFORMAT/" -e "s/\${MNT}/$MNT/" -e "s/\${ENCRYPT}/$ENCRYPT/" -e"s/\${REPO}/$i/" /etc/borgmatic.d/$i.yaml   #Substitutes variables in downloaded configuration file
+
+						if [ $? -eq 0 ]
+
+							# If success
+							then
+								MNT="/$MNT"  #Puts the first character again
+								TEMP="/$TEMP"
+								echo "The configuration file was generated successfully."
+								echo "..."
+								printf "\n"
+								sleep 5s
+							# If failure
+							else
+								echo "Could not generate configuration file."
+								printf "\n"
+								echo "Please try doing it manually."
+								printf "\n"				
+								exit 1 # Exit with general error
+							fi
+					else
+						echo "A configuration file for &i already exists at '/etc/borgmatic.d/'"
+						echo "..."
+						printf "\n"
+						sleep 2s
+					fi
+
+				#Prompt to edit borgmatic configuration file
+				while true; 
+					do
+						read -p "Do you wish to edit the configuration file now?(y/n)" yn
+							case $yn in
+								[Yy]* ) vi /etc/borgmatic.d/$i.yaml;break;;
+								[Nn]* ) break;;
+									* ) echo "Please answer yes or no.";;
+							esac
+				done
+
+				#Configuration file validation
+				echo "Validating config file"
+				echo "----------------------"
+				sleep 2s
+
+				validate-borgmatic-config
+
+				while [ $? -ne 0 ]
+
+					do
+						printf "\n"
+						echo "Please verify the file something is not right."
+						sleep 5s
+						nano /etc/borgmatic.d/$i.yaml
+				
+						validate-borgmatic-config
+				done
+
+				printf "\n"
+				echo "File for $i validated successfully."
+				sleep 3s
+
 				# Clear terminal window
 				clear
 
@@ -465,18 +470,11 @@ for i in *
 				printf "\n"
 				sleep 5s # Wait 5 seconds
 				
-				# Filename with no format (container_name.snapshot-backup)
-				FILENAME_NOFORMAT="snapshot-backup-$NAME"
-
-				# Full Filename with format (container_name.snapshot-backup.format)
-				FILENAME="$FILENAME_NOFORMAT.tar.gz"
-		
 				echo "The snapshot backup filename will be: $FILENAME"
 				echo "Stored temporarily within: $TEMP"
 				echo "Full temporary savepath: $TEMP/$FILENAME"
 				printf "\n"
 				sleep 5s # Wait 5 seconds
-		
 		
 				# Start snapshot backup process
 				echo "Starting snapshot backup process..."
@@ -494,8 +492,9 @@ for i in *
 				echo "Exporting 'lxd-image-backup-$NAME' image in this location: '$TEMP/$FILENAME'."
 				#lxc image export lxd-image-backup-$NAME .
 				lxc image export lxd-image-backup-$NAME $TEMP/$FILENAME_NOFORMAT
-			fi
+			
 done				
+
 #Backup the Containers
 set -x
 borgmatic --verbosity 1
