@@ -1,6 +1,8 @@
 #!/bin/bash
 
-BEGIN=$(date +%Y-%m-%d-%H:%M)
+# This should be at the top of the script to get the start time of the script
+start=$(date +%s.%N)
+
 
 ##
 ## Required software libaries:
