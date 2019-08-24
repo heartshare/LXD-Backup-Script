@@ -364,7 +364,7 @@ EOF
 						echo "This key was also sent to you by email"
 						read -p "Press enter to continue"
 					
-					fi
+					
 					# If failure
 					else
 						echo "Repo for the container $i already exists.Resuming..."
@@ -492,7 +492,7 @@ EOF
 				echo "Exporting 'lxd-image-backup-$NAME' image in this location: '$TEMP/$FILENAME'."
 				#lxc image export lxd-image-backup-$NAME .
 				lxc image export lxd-image-backup-$NAME $TEMP/$FILENAME_NOFORMAT
-			
+			fi
 done				
 
 #Backup the Containers
@@ -565,8 +565,8 @@ for i in *
 								END=$(date +%Y-%m-%d-%H:%M)
 								TOTAL=$(expr %END - $BEGIN)	
  /usr/bin/expect <(cat << EOF
-spawn borg info $MNT/$REPO 
-expect "Enter passphrase for key $MNT/$REPO:"
+spawn borg info $MNT/$i 
+expect "Enter passphrase for key $MNT/$i:"
 send "$ENCRYPT\r"
 interact
 EOF
