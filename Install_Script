@@ -17,8 +17,10 @@ BEGIN=$(date +%Y-%m-%d-%H:%M)
 # Clear terminal window
 clear
 
-#Script Introduction
+exec > >(tee -i $TEMP/backup_log_$BEGIN.txt)  #This file will log everything
+exec 2>&1
 
+#Script Introduction
 echo "Hi,
 This script was designed to make LXD backups easier to implement and mantain.
 	
@@ -60,10 +62,10 @@ clear
 
 #Check if running as root
 if [ "$EUID" -ne 0 ]
-  then echo "Please run this script as root"
-  exit 1     # Exit with General Error
-
-fi
+	then 
+		echo "Please run this script as root"
+		exit 1     # Exit with General Error
+	fi
 
 
 #Check if running on right release
@@ -84,7 +86,7 @@ if [ $? -ne 0 ]
 		echo "Ubuntu Version 18.04 confirmed."
 		sleep 2s
   
-fi
+	fi
 
 printf "\n"
 printf "\n"
@@ -112,7 +114,7 @@ if ping -q -c 1 -W 1 8.8.8.8 >/dev/null;
 		echo "This script needs internet connectivity to run to completion."
 		sleep 5s
 		exit 1 # Exit with general error
-fi
+	fi
 
 
 if ping -q -c 1 -W 1 google.com >/dev/null; 
@@ -123,7 +125,7 @@ if ping -q -c 1 -W 1 google.com >/dev/null;
 		echo "This is needed by the script to run to completion."
 		sleep 5s
 		exit 1 # Exit with general error
-fi
+	fi
 
 sleep 3s
 set -x                               #Sends output to terminal
@@ -153,11 +155,8 @@ mkdir $TEMP 2>/dev/null >/dev/null
 
 if [ "${TEMP: -1}" == "/" ]  #Checks if there is a forward slash in the path and if there is removes it
 	then 
-	TEMP=${TEMP%?}
-fi
-
-exec > >(tee -i $TEMP/backup_log_$BEGIN.txt)  #This file will log everything
-exec 2>&1
+		TEMP=${TEMP%?}
+	fi
 
 echo "Verifying if needed packages are installed."
 echo "-------------------------------------------"
@@ -201,14 +200,13 @@ if [ $? -ne 0 ]
 					printf "\n"
 					sleep 5s
 					exit 1 # Exit with general error
-			fi
-
+				fi
 	else
-	echo "The '$BORG' package is installed on your system."
-	echo "..."
-	printf "\n"
-	sleep 2s
-fi
+		echo "The '$BORG' package is installed on your system."
+		echo "..."
+		printf "\n"
+		sleep 2s
+	fi
 
 printf "\n"
 
@@ -250,13 +248,13 @@ if [ $? -ne 0 ]
 					printf "\n"
 					sleep 5s
 					exit 1 # Exit with general error
-			fi
+				fi
 	else
 		echo "The '$PYTHON' package is installed on your system."
 		echo "..."
 		printf "\n"
 		sleep 2s
-fi
+	fi
 
 printf "\n"
 
@@ -298,13 +296,13 @@ if [ $? -ne 0 ]
 					printf "\n"
 					sleep 5s
 					exit 1 # Exit with general error
-			fi
+				fi
 	else
 		echo "The '$PIP' package is installed on your system."
 		echo "..."
 		printf "\n"
 		sleep 2s
-fi
+	fi
 
 printf "\n"
 printf "\n"
@@ -346,14 +344,14 @@ if [ $? -ne 0 ]
 					echo "Please try installing it manually."
 					printf "\n"
 					exit 1 # Exit with general error
-			fi
+				fi
 
 	else
 		echo "The '$WGET' package is installed on your system."
 		echo "..."
 		printf "\n"
 		sleep 2s
-fi
+	fi
 
 printf "\n"
 
@@ -395,13 +393,13 @@ if [ $? -ne 0 ]
 					echo "Please try installing it manually."
 					printf "\n"
 					exit 1 # Exit with general error
-			fi
+				fi
 	else
 		echo "The '$EXPECT' package is installed on your system."
 		echo "..."
 		printf "\n"
 		sleep 2s
-fi
+	fi
 
 printf "\n"
 
@@ -443,13 +441,13 @@ if [ $? -ne 0 ]
 					printf "\n"
 					sleep 5s
 					exit 1 # Exit with general error
-			fi
+				fi
 	else
 		echo "The '$BORGMATIC' module is installed on your system."
 		echo "..."
 		printf "\n"
 		sleep 2s
-fi
+	fi
 
 printf "\n"
 
@@ -460,17 +458,8 @@ printf "\n"
 printf "\n"
 sleep 2s
 
-
-########--Validation--########
-
 # Clear terminal window
 clear
-
-echo "Verifying Configuration Files"
-echo "-----------------------------"
-
-#Create borgmatic config file directory
-mkdir /etc/borgmatic.d/ 2>/dev/null >/dev/null
 
 #Add Borgmatic to PATH
 PATH="/root/.local/bin:${PATH}"
@@ -505,113 +494,8 @@ done
 if [ "${LXD: -1}" == "/" ]  #Checks if there is a forward slash in the path and if there is removes it
 	then 
 		LXD=${LXD%?}
-fi
-
-cd $LXD
-for i in * 
-	do
-		NAME="$i"                   # The Container Name - Used to categorize backups
-
-		# Filename with no format (container_name.snapshot-backup)
-		FILENAME_NOFORMAT="snapshot-backup-$NAME"
-
-		# Full Filename with format (container_name.snapshot-backup.format)
-		FILENAME="$FILENAME_NOFORMAT.tar.gz"
-
-		echo "Verifying Configuration file for $i"
-		echo "-----------------------------------"
-
-		# Location of LXD Containers
-		GLOBAL_LXD='$LXD/$i'
-
-		# Checking to see if borgmatic configuration files exist
-		echo "Checking for $i configuration file."
-		printf "\n"
-		sleep 1s
-		
-		BORGMATICCONF=$(ls -a /etc/borgmatic.d/ | grep $i.yaml)
-
-			if [ $? -ne 0 ]
-
-				# If success
-				then
-					echo "The borgmatic configuration file does not exist."
-					echo "The configuration file will now be generated."
-					printf "\n"
-					sleep 3s
-						set -x                               #Sends output to terminal
-						wget -P $TEMP https://raw.githubusercontent.com/The-Inamati/LXD-Backup-Script/master/Borgmatic_Script
-						{ set +x; } 2>/dev/null              #Stops output to terminal and hides set+x from output
-						mv $TEMP/Borgmatic_Script /etc/borgmatic.d/$i.yaml
-						# delete the first character from the string inside the variable 
-						MNT=${MNT#?}
-						TEMP=${TEMP#?}
-						sed -i -e "s/\${TEMP}/$TEMP/" -e "s/\${FILENAME_NOFORMAT}/$FILENAME_NOFORMAT/" -e "s/\${MNT}/$MNT/" -e "s/\${ENCRYPT}/$ENCRYPT/" /etc/borgmatic.d/$i.yaml   #Substitutes variables in downloaded configuration file
-
-							if [ $? -eq 0 ]
-
-								# If success
-								then
-									MNT="/$MNT"  #Puts the first character again
-									TEMP="/$TEMP"
-									echo "The configuration file was generated successfully."
-									echo "..."
-									printf "\n"
-									sleep 5s
-								# If failure
-								else
-									echo "Could not generate configuration file."
-									printf "\n"
-									echo "Please try doing it manually."
-									printf "\n"				
-									exit 1 # Exit with general error
-							fi
-				else
-					echo "A configuration file exists at '/etc/borgmatic.d/'"
-					echo "..."
-					printf "\n"
-					sleep 2s
-
-			fi
-
-				#Prompt to edit borgmatic configuration file
-				while true; 
-					do
-						read -p "Do you wish to edit the configuration file now?(y/n)" yn
-							case $yn in
-								[Yy]* ) nano /etc/borgmatic.d/$i.yaml;break;;
-								[Nn]* ) break;;
-									* ) echo "Please answer yes or no.";;
-							esac
-				done
-
-		#Configuration file validation
-		echo "Validating config file"
-		echo "----------------------"
-		sleep 2s
-
-		validate-borgmatic-config
-
-		while [ $? -ne 0 ]
-
-			do
-				printf "\n"
-				echo "Please verify the file something is not right."
-				sleep 5s
-				nano /etc/borgmatic.d/$i.yaml
-				
-				validate-borgmatic-config
-		done
-
-		printf "\n"
-		echo "File for $i validated successfully."
-		sleep 3s
-
-done
-          
-echo "Configuration Files Verified."
-echo "-----------------------------"     
-
+	fi  
+  
 ####-Definition of backup and notification settings
 
 #Clear the terminal
@@ -667,11 +551,11 @@ done
 
 #Clear the terminal
 clear
-
+cd $TEMP
 DIR=$(dirname "$0") #Used to get path where this script is being executed
 
 set -x                               #Sends output to terminal
-wget -P $DIR https://raw.githubusercontent.com/The-Inamati/LXD-Backup-Script/master/${BACKUP}_${NOTIF}
+wget -P $DIR https://raw.githubusercontent.com/The-Inamati/LXD-Backup-Script/new-backup-feature/${BACKUP}_${NOTIF}
 { set +x; } 2>/dev/null              #Stops output to terminal and hides set+x from output
 
 source ${BACKUP}_${NOTIF}
