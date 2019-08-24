@@ -357,10 +357,10 @@ EOF
 						echo "Your encryption key for this repo is:"
 						printf "\n"
 						printf "\n"
-						cat $TEMP/$i_Key.txt
+						cat /etc/borgmatic.d/keys/$i_Key.txt
 						printf "\n"
 						echo "Please save the key or the file with it located in /etc/borgmatic.d/keys/$i_Key.txt"
-						echo "Key for $i exported successfully" | mail -s "Repo key for $i" $MAIL -a /etc/borgmatic.d/keys/$i_key.txt #adicionar total de tempo ao email
+						echo "Key for $i exported successfully" | mutt -s "Repo key for $i" $MAIL -a /etc/borgmatic.d/keys/$i_key.txt #adicionar total de tempo ao email
 						echo "This key was also sent to you by email"
 						read -p "Press enter to continue"
 					
@@ -499,11 +499,21 @@ done
 set -x
 borgmatic --verbosity 1
 { set +x; } 2>/dev/null              #Stops output to terminal and hides set+x from output      
-      
+unset NAME
+unset i 
+unset FILENAME
+unset FILENAME_NOFORMAT
 cd $LXD
 for i in * 
 	do        
 		NAME="$i"
+		
+		# Filename with no format (container_name.snapshot-backup)
+		FILENAME_NOFORMAT="snapshot-backup-$NAME"
+
+		# Full Filename with format (container_name.snapshot-backup.format)
+		FILENAME="$FILENAME_NOFORMAT.tar.gz"
+		
 		# Now delete the 'lxd-image-backup-$NAME' image
 		echo "Deleting 'lxd-image-backup-$NAME' image from server."
 		lxc image delete lxd-image-backup-$NAME
@@ -574,7 +584,7 @@ EOF
 								echo "An email will be sent to $MAIL"
 								echo "Backup has finished successfully. $FILENAME has been created and backed up successfully." 
 								echo "Backup has finished successfully. $FILENAME has been created and backed up successfully.
-								Total backup time was $TOTAL. Log and size of backup are in attachments" | mail -s "Success: $NAME Backup" $MAIL -a $TEMP/backup_log_$BEGIN.txt -a /tmp/backup.txt #adicionar total de tempo ao email
+								Total backup time was $TOTAL. Log and size of backup are in attachments" | mutt -s "Success: $NAME Backup" $MAIL -a $TEMP/backup_log_$BEGIN.txt -a /tmp/backup.txt #adicionar total de tempo ao email
 								rm /tmp/backup.txt
 								echo "A log file exists in $TEMP/backup_log_$BEGIN.txt"
 								printf "\n"
