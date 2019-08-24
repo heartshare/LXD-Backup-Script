@@ -572,8 +572,11 @@ for i in *
 								printf "\n"
 				
 								# Send an email explaing a successful backup
-								END=$(date +%Y-%m-%d-%H:%M)
-								TOTAL=$(expr %END - $BEGIN)	
+								function exit_with_error {
+								DURATION=$(echo "$(date +%s.%N) - $start" | bc)
+								EXECUTION=`printf "%.2f seconds" $DURATION`
+								exit 1
+								}
  /usr/bin/expect <(cat << EOF
 spawn borg info $MNT/$i 
 expect "Enter passphrase for key $MNT/$i:"
@@ -584,7 +587,7 @@ EOF
 								echo "An email will be sent to $MAIL"
 								echo "Backup has finished successfully. $FILENAME has been created and backed up successfully." 
 								echo "Backup has finished successfully. $FILENAME has been created and backed up successfully.
-								Total backup time was $TOTAL. Log and size of backup are in attachments" | mutt -s "Success: $NAME Backup" $MAIL -a $TEMP/backup_log_$BEGIN.txt -a /tmp/backup.txt #adicionar total de tempo ao email
+								Total backup time was $EXECUTION. Log and size of backup are in attachments" | mutt -s "Success: $NAME Backup" $MAIL -a $TEMP/backup_log_$BEGIN.txt -a /tmp/backup.txt #adicionar total de tempo ao email
 								rm /tmp/backup.txt
 								echo "A log file exists in $TEMP/backup_log_$BEGIN.txt"
 								printf "\n"
