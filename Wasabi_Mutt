@@ -288,7 +288,7 @@ for i in *
 			# If none of these arguments are empty, the script can proceed
 			then
 				echo "One or more arguments are empty."
-				echo "A log file exists in $TEMP/backup_log_$BEGIN.txt"
+				echo "A log file exists in $TEMP/backup_log_$START.txt"
 				sleep 5s
 				exit 1 # Exit with general error
 			
@@ -562,7 +562,7 @@ for i in *
 								echo "An email will be sent to $MAIL"
 								echo "$FILENAME was supposed to be removed, but still exists on the local server."
 								echo "Failed removing snapshot file from local server." | mutt  -s "Backup Failed" $MAIL
-								echo "A log file exists in $TEMP/backup_log_$BEGIN.txt"
+								echo "A log file exists in $TEMP/backup_log_$START.txt"
 								sleep 5s
 								exit 1 # Exit with general error
 
@@ -573,7 +573,7 @@ for i in *
 				
 								# Send an email explaing a successful backup
 								function exit_with_error {
-								DURATION=$(echo "$(date +%s.%N) - $start" | bc)
+								DURATION=$(echo "$(date +%s.%N) - $START" | bc)
 								EXECUTION=`printf "%.2f seconds" $DURATION`
 								exit 1
 								}
@@ -587,15 +587,15 @@ EOF
 								echo "An email will be sent to $MAIL"
 								echo "Backup has finished successfully. $FILENAME has been created and backed up successfully." 
 								echo "Backup has finished successfully. $FILENAME has been created and backed up successfully.
-								Total backup time was $EXECUTION. Log and size of backup are in attachments" | mutt -s "Success: $NAME Backup" $MAIL -a $TEMP/backup_log_$BEGIN.txt -a /tmp/backup.txt #adicionar total de tempo ao email
+								Total backup time was $EXECUTION. Log and size of backup are in attachments" | mutt -s "Success: $NAME Backup" $MAIL -a $TEMP/backup_log_$START.txt -a /tmp/backup.txt #adicionar total de tempo ao email
 								rm /tmp/backup.txt
-								echo "A log file exists in $TEMP/backup_log_$BEGIN.txt"
+								echo "A log file exists in $TEMP/backup_log_$START.txt"
 								printf "\n"
 									while true; 
 										do
 											read -p "Do you wish to delete the log file?(y/n)" yn
 												case $yn in
-												[Yy]* ) rm $TEMP/backup_log_$BEGIN.txt;break;;
+												[Yy]* ) rm $TEMP/backup_log_$START.txt;break;;
 												[Nn]* ) break;;
 													* ) echo "Please answer yes or no.";;
 												esac
@@ -613,7 +613,7 @@ EOF
 					echo "An email will be sent to $MAIL"
 					echo "Creating $FILENAME on local server failed." 
 					echo "Creating $FILENAME on local server failed." | mutt  -s "Backup Failed" $MAIL
-					echo "A log file exists in $TEMP/backup_log_$BEGIN.txt"
+					echo "A log file exists in $TEMP/backup_log_$START.txt"
 					sleep 5s
 					exit 1 # Exit with general error
 
