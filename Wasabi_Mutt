@@ -568,15 +568,8 @@ for i in *
 
 							# If failure
 							else
-								echo "Backup has finished successfully."
 								printf "\n"
 				
-								# Send an email explaing a successful backup
-								function exit_with_error {
-								DURATION=$(echo "$(date +%s.%N) - $START" | bc)
-								EXECUTION=`printf "%.2f seconds" $DURATION`
-								exit 1
-								}
  /usr/bin/expect <(cat << EOF
 spawn borg info $MNT/$i 
 expect "Enter passphrase for key $MNT/$i:"
@@ -584,22 +577,13 @@ send "$ENCRYPT\r"
 interact
 EOF
 ) >> /tmp/backup.txt						
-								echo "An email will be sent to $MAIL"
 								echo "Backup has finished successfully. $FILENAME has been created and backed up successfully." 
+								echo "An email will be sent to $MAIL"
+								END=(date +'%H:%M:%S')
 								echo "Backup has finished successfully. $FILENAME has been created and backed up successfully.
-								Total backup time was $EXECUTION. Log and size of backup are in attachments" | mutt -s "Success: $NAME Backup" $MAIL -a $TEMP/backup_log_$START.txt -a /tmp/backup.txt #adicionar total de tempo ao email
+								Backup started at $BEGIN and was completed at $END. Log and size of backup are in attachments" | mutt -s "Success: $NAME Backup" $MAIL -a $TEMP/backup_log_$BEGIN.txt -a /tmp/backup.txt #adicionar total de tempo ao email
 								rm /tmp/backup.txt
-								echo "A log file exists in $TEMP/backup_log_$START.txt"
-								printf "\n"
-									while true; 
-										do
-											read -p "Do you wish to delete the log file?(y/n)" yn
-												case $yn in
-												[Yy]* ) rm $TEMP/backup_log_$START.txt;break;;
-												[Nn]* ) break;;
-													* ) echo "Please answer yes or no.";;
-												esac
-									done
+								
 							fi
                                                 
      
@@ -618,6 +602,18 @@ EOF
 					exit 1 # Exit with general error
 
 				fi     
+done
+
+echo "A log file exists in $TEMP/backup_log_$START.txt"
+printf "\n"
+while true; 
+	do
+		read -p "Do you wish to delete the log file?(y/n)" yn
+		case $yn in
+			[Yy]* ) rm $TEMP/backup_log_$BEGIN.txt;break;;
+			[Nn]* ) break;;
+				* ) echo "Please answer yes or no.";;
+		esac
 done
 
 exit 0 # Successful exit
