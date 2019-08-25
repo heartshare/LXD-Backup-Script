@@ -1,7 +1,7 @@
 #!/bin/bash
 
 ######--Backup Preparation--######
-set -x
+
 #Prompt to define wasabi access key
 while true 
 	do
@@ -254,7 +254,9 @@ echo "Email notifications were configured with settings indicated in the attachm
 echo "A test email was just sent with the details you specified. Please confirm you received it.
 In case you don't receive it please check your Mutt configuration at ~/.muttrc.
 The email may also be greylisted. Please try again with the command shown below after the script finishes. 
+
 <echo "Body Text" | mutt -s "Subject" email@mail.domain.com -a ~/.muttrc>"
+printf "\n"
 read -p "Press enter to continue"
 		
 echo "Continuing with backup in 5 seconds."
@@ -579,7 +581,7 @@ EOF
 ) >> /tmp/backup.txt						
 								echo "Backup has finished successfully. $FILENAME has been created and backed up successfully." 
 								echo "An email will be sent to $MAIL"
-								END=(date +'%H:%M:%S')
+								END=$(date +'%H:%M:%S')
 								echo "Backup has finished successfully. $FILENAME has been created and backed up successfully.
 								Backup started at $BEGIN and was completed at $END. Log and size of backup are in attachments" | mutt -s "Success: $NAME Backup" $MAIL -a $TEMP/backup_log_$BEGIN.txt -a /tmp/backup.txt #adicionar total de tempo ao email
 								rm /tmp/backup.txt
@@ -615,5 +617,5 @@ while true;
 				* ) echo "Please answer yes or no.";;
 		esac
 done
-set +x
+
 exit 0 # Successful exit
