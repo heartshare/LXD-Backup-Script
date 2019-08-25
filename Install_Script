@@ -1,9 +1,7 @@
 #!/bin/bash
 
 # This should be at the top of the script to get the start time of the script
-START=$(date +%s.%N)
-
-
+BEGIN=(date +'%H:%M:%S')
 ##
 ## Required software libaries:
 ##   'mutt'             Used for sending email using the 'mail' command
@@ -19,7 +17,7 @@ START=$(date +%s.%N)
 # Clear terminal window
 clear
 
-exec > >(tee -i $TEMP/backup_log_$START.txt)  #This file will log everything
+exec > >(tee -i $TEMP/backup_log_$BEGIN.txt)  #This file will log everything
 exec 2>&1
 
 #Script Introduction
