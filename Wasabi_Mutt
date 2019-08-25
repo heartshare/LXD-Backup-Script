@@ -1,7 +1,7 @@
 #!/bin/bash
 
 ######--Backup Preparation--######
-
+set -x
 #Prompt to define wasabi access key
 while true 
 	do
@@ -615,5 +615,5 @@ while true;
 				* ) echo "Please answer yes or no.";;
 		esac
 done
-
+set +x
 exit 0 # Successful exit
