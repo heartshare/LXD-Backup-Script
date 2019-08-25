@@ -508,7 +508,7 @@ while [[ $yn != y ]]
 	do
 		# Parent menu items declared here
 		PS3="Please select your backup preference: "
-			select BACKUP in Local RClone Wasabi
+			select BACKUP in Local Wasabi
 				do
 					# case statement to compare the first menu items
 					case $BACKUP in
