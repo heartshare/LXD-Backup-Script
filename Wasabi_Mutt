@@ -414,46 +414,23 @@ EOF
 				printf "\n"
 				sleep 2s
 				
-				borg create                     \
-				--verbose                       \
-				--filter AME                    \
-				--list                          \
-				--stats                         \
-				--show-rc                       \
-				--compression zstd,22           \
-												\
-				::'$NAME-$BEGIN'            \
-				$TEMP/$FILENAME_NOFORMAT        \
+				borg create	--verbose --filter AME --list --stats --show-rc --progress --compression zstd,22 $MNT/$NAME::$NAME-$BEGIN $TEMP/$FILENAME_NOFORMAT
 		
 				echo "Pruning $i Repository"
 				printf "\n"
 				sleep 2s
 				
-				borg prune                      \
-				--list                          \
-				--prefix '$NAME-'				\
-				--show-rc                       \
-				--keep-daily    7               \
-				--keep-weekly   4               \
-				--keep-monthly  6               \
+				borg prune --list --prefix $NAME- --show-rc	--keep-daily 7 --keep-weekly 4 --keep-monthly 6
 				
 				echo "Checking Repository Consistency"
 				printf "\n"
 				sleep 2s
 				
-				borg check						\
-				--repository-only				\
-				--repair						\
-				--prefix '$NAME-'				\
+				borg check --repository-only --repair --prefix $NAME-
 				
 				echo "Checking $i Archives"
 				
-				borg check						\
-				--archives-only					\
-				--verify-data					\
-				--repair						\
-				--prefix '$NAME-'				\
-				--last 3						\
+				borg check --archives-only --verify-data --repair --prefix $NAME- --last 3
 				
 				####--Cleanup--####
 
