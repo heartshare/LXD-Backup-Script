@@ -266,10 +266,10 @@ sleep 5s
 ####--Backup--####
 
 #Create borgmatic config file directory
-        mkdir /etc/borgmatic.d/ 2>/dev/null >/dev/null
-		mkdir /etc/borgmatic.d/keys 2>/dev/null >/dev/null
-		chmod 600 /etc/borgmatic.d 2>/dev/null >/dev/null
-		chmod 600 /etc/borgmatic.d/keys 2>/dev/null >/dev/null
+        mkdir /etc/borg.d/ 2>/dev/null >/dev/null
+		mkdir /etc/borg.d/keys 2>/dev/null >/dev/null
+		chmod 600 /etc/borg.d 2>/dev/null >/dev/null
+		chmod 600 /etc/borg.d/keys 2>/dev/null >/dev/null
 
 cd $LXD
 for i in * 
@@ -351,15 +351,15 @@ EOF
 								sleep 3s
 							fi
 
-						borg key export $MNT/$i /etc/borgmatic.d/keys/$i_Key.txt
+						borg key export $MNT/$i /etc/borg.d/keys/$i_Key.txt
 						printf "\n"
 						echo "Your encryption key for this repo is:"
 						printf "\n"
 						printf "\n"
-						cat /etc/borgmatic.d/keys/$i_Key.txt
+						cat /etc/borg.d/keys/$i_Key.txt
 						printf "\n"
-						echo "Please save the key or the file with it located in /etc/borgmatic.d/keys/$i_Key.txt"
-						echo "Key for $i exported successfully" | mutt -s "Repo key for $i" $MAIL -a /etc/borgmatic.d/keys/$i_key.txt 
+						echo "Please save the key or the file with it located in /etc/borg.d/keys/$i_Key.txt"
+						echo "Key for $i exported successfully" | mutt -s "Repo key for $i" $MAIL -a /etc/borg.d/keys/$i_key.txt 
 						echo "This key was also sent to you by email"
 						read -p "Press enter to continue"
 					
@@ -371,88 +371,6 @@ EOF
 						sleep 3s
 					fi
 								
-				# Checking to see if borgmatic configuration files exist
-				echo "Checking configuration file for $i."
-				printf "\n"
-				sleep 1s
-		
-				BORGMATICCONF=$(ls -a /etc/borgmatic.d/ | grep $i.yaml)
-
-				if [ $? -ne 0 ]
-
-					# If success
-					then
-						echo "The borgmatic configuration file does not exist."
-						echo "The configuration file will now be generated."
-						printf "\n"
-						sleep 3s
-						set -x                               #Sends output to terminal
-						wget -P $TEMP https://raw.githubusercontent.com/The-Inamati/LXD-Backup-Script/master/Borgmatic_Script
-						{ set +x; } 2>/dev/null              #Stops output to terminal and hides set+x from output
-						mv $TEMP/Borgmatic_Script /etc/borgmatic.d/$i.yaml
-						# delete the first character from the string inside the variable 
-						MNT=${MNT#?}
-						TEMP=${TEMP#?}
-						sed -i -e "s/\${TEMP}/$TEMP/" -e "s/\${FILENAME_NOFORMAT}/$FILENAME_NOFORMAT/" -e "s/\${MNT}/$MNT/" -e "s/\${ENCRYPT}/$ENCRYPT/" -e "s/\${REPO}/$i/" -e "s/\${BEGIN}/$BEGIN/" /etc/borgmatic.d/$i.yaml   #Substitutes variables in downloaded configuration file
-
-						if [ $? -eq 0 ]
-
-							# If success
-							then
-								MNT="/$MNT"  #Puts the first character again
-								TEMP="/$TEMP"
-								echo "The configuration file was generated successfully."
-								echo "..."
-								printf "\n"
-								sleep 5s
-							# If failure
-							else
-								echo "Could not generate configuration file."
-								printf "\n"
-								echo "Please try doing it manually."
-								printf "\n"				
-								exit 1 # Exit with general error
-							fi
-					else
-						echo "A configuration file for &i already exists at '/etc/borgmatic.d/'"
-						echo "..."
-						printf "\n"
-						sleep 2s
-					fi
-
-				#Prompt to edit borgmatic configuration file
-				while true; 
-					do
-						read -p "Do you wish to edit the configuration file now?(y/n)" yn
-							case $yn in
-								[Yy]* ) vi /etc/borgmatic.d/$i.yaml;break;;
-								[Nn]* ) break;;
-									* ) echo "Please answer yes or no.";;
-							esac
-				done
-
-				#Configuration file validation
-				echo "Validating config file"
-				echo "----------------------"
-				sleep 2s
-
-				validate-borgmatic-config
-
-				while [ $? -ne 0 ]
-
-					do
-						printf "\n"
-						echo "Please verify the file something is not right."
-						sleep 5s
-						nano /etc/borgmatic.d/$i.yaml
-				
-						validate-borgmatic-config
-				done
-
-				printf "\n"
-				echo "File for $i validated successfully."
-				sleep 3s
-
 				# Clear terminal window
 				clear
 
@@ -491,86 +409,109 @@ EOF
 				echo "Exporting 'lxd-image-backup-$NAME' image in this location: '$TEMP/$FILENAME'."
 				#lxc image export lxd-image-backup-$NAME .
 				lxc image export lxd-image-backup-$NAME $TEMP/$FILENAME_NOFORMAT
-			fi
-done				
-
-#Backup the Containers
-set -x
-borgmatic --verbosity 1
-{ set +x; } 2>/dev/null              #Stops output to terminal and hides set+x from output      
-unset NAME
-unset i 
-unset FILENAME
-unset FILENAME_NOFORMAT
-
-####--Cleanup--####
-
-cd $LXD
-for i in * 
-	do        
-		NAME="$i"
+				
+				echo "Creating Repository for $i."
+				printf "\n"
+				sleep 2s
+				
+				borg create                     \
+				--verbose                       \
+				--filter AME                    \
+				--list                          \
+				--stats                         \
+				--show-rc                       \
+				--compression zstd,22           \
+												\
+				::'${NAME}-${BEGIN}'            \
+				$TEMP/$FILENAME_NOFORMAT        \
 		
-		# Filename with no format (container_name.snapshot-backup)
-		FILENAME_NOFORMAT="snapshot-backup-$NAME"
+				echo "Pruning $i Repository"
+				printf "\n"
+				sleep 2s
+				
+				borg prune                      \
+				--list                          \
+				--prefix '${NAME}-'				\
+				--show-rc                       \
+				--keep-daily    7               \
+				--keep-weekly   4               \
+				--keep-monthly  6               \
+				
+				echo "Checking Repository Consistency"
+				printf "\n"
+				sleep 2s
+				
+				borg check						\
+				--repository-only				\
+				--repair						\
+				--prefix '${NAME}-'				\
+				
+				echo "Checking $i Archives"
+				
+				borg check						\
+				--archives-only					\
+				--verify-data					\
+				--repair						\
+				--prefix '${NAME}-'				\
+				--last 3						\
+				
+				####--Cleanup--####
 
-		# Full Filename with format (container_name.snapshot-backup.format)
-		FILENAME="$FILENAME_NOFORMAT.tar.gz"
-		
-		# Now delete the 'lxd-image-backup-$NAME' image
-		echo "Deleting 'lxd-image-backup-$NAME' image from server."
-		lxc image delete lxd-image-backup-$NAME
-	
-		# And delete the temporary 'backup' snapshot
-		echo "Deleting temporary 'backup' snapshot from server."
-		lxc delete local:$NAME/backup
-	
-		echo "Snapshot backup process has finished."
-		echo "..."
-		printf "\n"
-	
-	
-		# Verify snapshot file has been created
-		echo "Verifying $FILENAME file has been created."
-		printf "\n"
-
-			if [ -f $TEMP/$FILENAME ]
-
-				# If success
-				then
-					echo "File exists on the local server."
-					printf "\n"
-					
-					# Remove snapshot file from the local server
-					echo "Now removing $FILENAME from the local server."
-					rm $TEMP/$FILENAME
-					echo "Finished removing file."
-					echo "..."
-					printf "\n"
-		
-					# Verify snapshot file has been removed from the local server
-					echo "Verifying $FILENAME has been removed from the local server."
-					echo "..."
-					printf "\n"
-
-						if [ -f $TEMP/$FILENAME ]
-
-							# If success
-							then
-								echo "File still exists on the local server."
-								echo "Backup has failed."
-								printf "\n"
+				# Now delete the 'lxd-image-backup-$NAME' image
+				echo "Deleting 'lxd-image-backup-$NAME' image from server."
+				lxc image delete lxd-image-backup-$NAME
 			
-								# Send an email explaining this failure
-								echo "An email will be sent to $MAIL"
-								echo "$FILENAME was supposed to be removed, but still exists on the local server."
-								echo "Failed removing snapshot file from local server." | mutt  -s "Backup Failed" $MAIL
-								echo "A log file exists in $TEMP/backup_log_$BEGIN.txt"
-								sleep 5s
-								exit 1 # Exit with general error
-
-							# If failure
-							else
-								printf "\n"
+				# And delete the temporary 'backup' snapshot
+				echo "Deleting temporary 'backup' snapshot from server."
+				lxc delete local:$NAME/backup
+			
+				echo "Snapshot backup process has finished."
+				echo "..."
+				printf "\n"
+			
+			
+				# Verify snapshot file has been created
+				echo "Verifying $FILENAME file has been created."
+				printf "\n"
+		
+					if [ -f $TEMP/$FILENAME ]
+		
+						# If success
+						then
+							echo "File exists on the local server."
+							printf "\n"
+							
+							# Remove snapshot file from the local server
+							echo "Now removing $FILENAME from the local server."
+							rm $TEMP/$FILENAME
+							echo "Finished removing file."
+							echo "..."
+							printf "\n"
+				
+							# Verify snapshot file has been removed from the local server
+							echo "Verifying $FILENAME has been removed from the local server."
+							echo "..."
+							printf "\n"
+		
+								if [ -f $TEMP/$FILENAME ]
+		
+									# If success
+									then
+										echo "File still exists on the local server."
+										echo "Backup has failed."
+										printf "\n"
+					
+										# Send an email explaining this failure
+										echo "An email will be sent to $MAIL"
+										echo "$FILENAME was supposed to be removed, but still exists on the local server."
+										echo "Failed removing snapshot file from local server." | mutt  -s "Backup Failed" $MAIL
+										echo "A log file exists in $TEMP/backup_log_$BEGIN.txt"
+										sleep 5s
+										exit 1 # Exit with general error
+		
+									# If failure
+									else
+										printf "\n"
 				
  /usr/bin/expect <(cat << EOF
 spawn borg info $MNT/$i 
@@ -579,29 +520,28 @@ send "$ENCRYPT\r"
 interact
 EOF
 ) >> /tmp/backup_$i.txt						
-								echo "Backup has finished successfully. $FILENAME has been created and backed up successfully." 
-								echo "An email will be sent to $MAIL"
-								END=$(date +'%H:%M:%S')
-								echo "Backup has finished successfully. $FILENAME has been created and backed up successfully. Backup started at $BEGIN and was completed at $END. Log and size of backup are in attachments" | mutt -s "Success: $NAME Backup" $MAIL -a $TEMP/backup_log_$BEGIN.txt -a /tmp/backup_$i.txt #adicionar total de tempo ao email
-								rm /tmp/backup_$i.txt
-							fi
-                                                
-     
-				# If failure
-				else
-					echo "File does not exist on the local server."
-					echo "Backup has failed."
-					printf "\n"
+										echo "Backup has finished successfully. $FILENAME has been created and backed up successfully." 
+										echo "An email will be sent to $MAIL"
+										END=$(date +'%H:%M:%S')
+										echo "Backup has finished successfully. $FILENAME has been created and backed up successfully. Backup started at $BEGIN and was completed at $END. Log and size of backup are in attachments" | mutt -s "Success: $NAME Backup" $MAIL -a $TEMP/backup_log_$BEGIN.txt -a /tmp/backup_$i.txt #adicionar total de tempo ao email
+										rm /tmp/backup_$i.txt
+									fi                
+						# If failure
+						else
+							echo "File does not exist on the local server."
+							echo "Backup has failed."
+							printf "\n"
+		
+							# Send an email explaining this failure
+							echo "An email will be sent to $MAIL"
+							echo "Creating $FILENAME on local server failed." 
+							echo "Creating $FILENAME on local server failed." | mutt  -s "Backup Failed" $MAIL
+							echo "A log file exists in $TEMP/backup_log_$BEGIN.txt"
+							sleep 5s
+							exit 1 # Exit with general error
 
-					# Send an email explaining this failure
-					echo "An email will be sent to $MAIL"
-					echo "Creating $FILENAME on local server failed." 
-					echo "Creating $FILENAME on local server failed." | mutt  -s "Backup Failed" $MAIL
-					echo "A log file exists in $TEMP/backup_log_$BEGIN.txt"
-					sleep 5s
-					exit 1 # Exit with general error
-
-				fi     
+						fi     
+			fi			
 done
 
 echo "A log file exists in $TEMP/backup_log_$BEGIN.txt"
@@ -614,6 +554,6 @@ while true;
 			[Nn]* ) break;;
 				* ) echo "Please answer yes or no.";;
 		esac
-done
-
+done	
+				
 exit 0 # Successful exit
