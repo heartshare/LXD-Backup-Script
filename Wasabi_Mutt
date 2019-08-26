@@ -525,7 +525,7 @@ EOF
 										echo "Backup has finished successfully. $FILENAME has been created and backed up successfully." 
 										echo "An email will be sent to $MAIL"
 										END=$(date +'%H:%M:%S')
-										echo "Backup has finished successfully. $FILENAME has been created and backed up successfully. Backup started at $BEGIN and was completed at $END. Log and size of backup are in attachments" | mutt -s "Success: $NAME Backup" $MAIL -a $TEMP/backup_log_$BEGIN.txt -a /tmp/backup_$i.txt #adicionar total de tempo ao email
+										echo "Backup has finished successfully. $FILENAME has been created and backed up successfully. Backup started at $BEGIN and was completed at $END. Log and size of backup are in attachments" | mutt -s "Success: $NAME Backup" $MAIL -a $TEMP/backup_log_$BEGIN.txt -a /tmp/backup_$i.txt 
 										rm /tmp/backup_$i.txt
 									fi                
 						# If failure
