@@ -425,18 +425,37 @@ EOF
 				echo "Pruning $i Repository"
 				printf "\n"
 				sleep 2s
-				
-				borg prune --list --prefix $NAME- --show-rc	--keep-daily 7 --keep-weekly 4 --keep-monthly 6 $MNT/$i
-				
+
+/usr/bin/expect <(cat << EOF
+spawn borg prune --list --prefix $NAME- --show-rc	--keep-daily 7 --keep-weekly 4 --keep-monthly 6 $MNT/$i
+expect "Enter passphrase for key $MNT/$i:"
+send "$ENCRYPT\r"
+interact
+EOF
+)						
 				echo "Checking Repository Consistency"
 				printf "\n"
 				sleep 2s
+
+/usr/bin/expect <(cat << EOF
+spawn borg check --repository-only $MNT/$i
+expect "Enter passphrase for key $MNT/$i:"
+send "$ENCRYPT\r"
+interact
+EOF
+)					
 				
-				borg check --repository-only --repair --prefix $NAME- $MNT/$i
 				
 				echo "Checking $i Archives"
+
+/usr/bin/expect <(cat << EOF
+spawn borg check --archives-only --verify-data --prefix $NAME- --last 3 $MNT/$i
+expect "Enter passphrase for key $MNT/$i:"
+send "$ENCRYPT\r"
+interact
+EOF
+)				
 				
-				borg check --archives-only --verify-data --repair --prefix $NAME- --last 3 $MNT/$i
 				
 				####--Cleanup--####
 
