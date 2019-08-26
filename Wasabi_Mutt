@@ -393,7 +393,7 @@ EOF
 						# delete the first character from the string inside the variable 
 						MNT=${MNT#?}
 						TEMP=${TEMP#?}
-						sed -i -e "s/\${TEMP}/$TEMP/" -e "s/\${FILENAME_NOFORMAT}/$FILENAME_NOFORMAT/" -e "s/\${MNT}/$MNT/" -e "s/\${ENCRYPT}/$ENCRYPT/" -e"s/\${REPO}/$i/" /etc/borgmatic.d/$i.yaml   #Substitutes variables in downloaded configuration file
+						sed -i -e "s/\${TEMP}/$TEMP/" -e "s/\${FILENAME_NOFORMAT}/$FILENAME_NOFORMAT/" -e "s/\${MNT}/$MNT/" -e "s/\${ENCRYPT}/$ENCRYPT/" -e "s/\${REPO}/$i/" -e "s/\${BEGIN}/$BEGIN/" /etc/borgmatic.d/$i.yaml   #Substitutes variables in downloaded configuration file
 
 						if [ $? -eq 0 ]
 
