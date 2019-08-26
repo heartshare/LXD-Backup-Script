@@ -1,15 +1,12 @@
 #!/bin/bash
 
 # This should be at the top of the script to get the start time of the script
-BEGIN=$(date +'%H:%M:%S')
+BEGIN=$(date +'%d-%m_%H:%M:%S')
 ##
 ## Required software libaries:
 ##   'mutt'             Used for sending email using the 'mail' command
 ##   'pushover'         Used to send notifications
 ##   'borgbackup'       Used for backing up files with encryption, retention and deduplication
-##   'borgmatic'        Simplifies borg usage and configuration
-##   'Python"           Required by PIP and connected to borgmatic installation
-##   'PIP'              Necessary to install borgmatic
 ##   'WGET'             Needed to get the cuswtomized borgmatic scripts
 ##   'Expect'           Needed to provide interactive input throughout the script
 ##   'S3FS'             Needed to mount S3 bucket as FS
@@ -33,9 +30,6 @@ Depending on your choices the following software may be installed:
 Mutt             Used for sending email using the 'mail' command
 Pushover         Used to send notifications if chosen
 Borgbackup       Used for backing up files with encryption, retention and deduplication
-Borgmatic        Simplifies borg usage and configuration
-Python           Required by PIP and connected to borgmatic installation
-Pip              Necessary to install borgmatic
 Wget             Needed to get the cuswtomized borgmatic scripts
 Expect           Needed to provide interactive input throughout the script
 S3FS             Needed to mount S3 bucket as FS
@@ -210,103 +204,6 @@ if [ $? -ne 0 ]
 
 printf "\n"
 
-# Checking to see if the Python3 is installed on your system
-# Used to run PIP
-PYTHON='python3'     
-echo "Checking to see if '$PYTHON' is installed on your system."
-printf "\n"
-sleep 2s
-
-dpkg -s $PYTHON 2>/dev/null >/dev/null
-
-if [ $? -ne 0 ]
-
-	# If success
-	then
-		echo "The '$PYTHON' package is not installed on your system."
-		echo "Package '$PYTHON' will now be installed."
-		printf "\n"
-		sleep 2s
-		INSTALL=$
-		set -x                               #Sends output to terminal
-		(apt install $PYTHON -y) 
-		{ set +x; } 2>/dev/null              #Stops output to terminal and hides set+x from output
-
-			if [ $? -eq 0 ]
-
-				# If success
-				then
-					echo "The '$PYTHON' package was installed successfully."
-					echo "..."
-					printf "\n"
-					sleep 2s
-				# If failure
-				else
-					echo "Install of '$PYTHON' package failed."
-					printf "\n"
-					echo "Please try installing it manually."
-					printf "\n"
-					sleep 5s
-					exit 1 # Exit with general error
-				fi
-	else
-		echo "The '$PYTHON' package is installed on your system."
-		echo "..."
-		printf "\n"
-		sleep 2s
-	fi
-
-printf "\n"
-
-# Checking to see if the PIP package manager is installed on your system
-# Used to install borgmatic
-PIP='python3-pip'     
-echo "Checking to see if '$PIP' is installed on your system."
-printf "\n"
-sleep 2s
-
-dpkg -s $PIP 2>/dev/null >/dev/null
-
-if [ $? -ne 0 ]
-
-	# If success
-	then
-		echo "The '$PIP' package is not installed on your system."
-		echo "Package '$PIP' will now be installed."
-		printf "\n"
-		sleep 2s
-		INSTALL=$
-		set -x                               #Sends output to terminal
-		(apt install $PIP -y) 
-		{ set +x; } 2>/dev/null              #Stops output to terminal and hides set+x from output
-
-			if [ $? -eq 0 ]
-
-				# If success
-				then
-					echo "The '$PIP' package was installed successfully."
-					echo "..."
-					printf "\n"
-					sleep 2s
-				# If failure
-				else
-					echo "Install of '$PIP' package failed."
-					printf "\n"
-					echo "Please try installing it manually."
-					printf "\n"
-					sleep 5s
-					exit 1 # Exit with general error
-				fi
-	else
-		echo "The '$PIP' package is installed on your system."
-		echo "..."
-		printf "\n"
-		sleep 2s
-	fi
-
-printf "\n"
-printf "\n"
-
 # Checking to see if the WGET package manager is installed on your system
 # Used to install wget
 WGET='wget'     
@@ -403,54 +300,6 @@ if [ $? -ne 0 ]
 
 printf "\n"
 
-# Checking to see if the Borgmatic package is installed on your system
-# Simplifies borg usage
-BORGMATIC='borgmatic'     
-echo "Checking to see if '$BORGMATIC' is installed on your system."
-printf "\n"
-sleep 2s
-
-BORGMATIC2=$(pip3 list --format=columns | grep $BORGMATIC)
-
-if [ $? -ne 0 ]
-
-	# If success
-	then
-		echo "The '$BORGMATIC' module is not installed on your system."
-		echo "Package '$BORGMATIC' will now be installed."
-		printf "\n"
-		sleep 2s
-		INSTALL=$
-		set -x                               #Sends output to terminal
-		(pip3 install --user --upgrade borgmatic) 
-		{ set +x; } 2>/dev/null              #Stops output to terminal and hides set+x from output
-
-			if [ $? -eq 0 ]
-
-				# If success
-				then
-					echo "The '$BORGMATIC' module was installed successfully."
-					echo "..."
-					printf "\n"
-					sleep 2s
-				# If failure
-				else
-					echo "Install of '$BORGMATIC' module failed."
-					printf "\n"
-					echo "Please try installing it manually."
-					printf "\n"
-					sleep 5s
-					exit 1 # Exit with general error
-				fi
-	else
-		echo "The '$BORGMATIC' module is installed on your system."
-		echo "..."
-		printf "\n"
-		sleep 2s
-	fi
-
-printf "\n"
-
 echo "*******************************"
 echo "Finished checking for packages."
 echo "*******************************"
@@ -460,12 +309,6 @@ sleep 2s
 
 # Clear terminal window
 clear
-
-#Add Borgmatic to PATH
-PATH="/root/.local/bin:${PATH}"
-sed -i '$ d' /etc/environment
-echo "PATH=$PATH:/root/.local/bin" >> /etc/environment
-echo "PATH=$PATH:/root/.local/bin" >> ~/.bashrc
 
 #Specify containers location
 while true 
