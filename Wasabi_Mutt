@@ -281,20 +281,17 @@ for i in *
 		# Full Filename with format (container_name.snapshot-backup.format)
 		FILENAME="$FILENAME_NOFORMAT.tar.gz"
 		
-		# Location of LXD Containers
-		GLOBAL_LXD='$LXD/$i'
-		
 		# Check if the required arguments are not empty
 		if [ "$i" == '' ];
 		
-			# If none of these arguments are empty, the script can proceed
+			# If one or more arguments are empty, produce an error
 			then
 				echo "One or more arguments are empty."
-				echo "A log file exists in $TEMP/backup_log_$START.txt"
+				echo "A log file exists in $TEMP/backup_log_$BEGIN.txt"
 				sleep 5s
 				exit 1 # Exit with general error
 			
-			# If one or more arguments are empty, produce an error
+			# If none of these arguments are empty, the script can proceed
 			else
 			 
 				#Repo Creation
@@ -362,7 +359,7 @@ EOF
 						cat /etc/borgmatic.d/keys/$i_Key.txt
 						printf "\n"
 						echo "Please save the key or the file with it located in /etc/borgmatic.d/keys/$i_Key.txt"
-						echo "Key for $i exported successfully" | mutt -s "Repo key for $i" $MAIL -a /etc/borgmatic.d/keys/$i_key.txt #adicionar total de tempo ao email
+						echo "Key for $i exported successfully" | mutt -s "Repo key for $i" $MAIL -a /etc/borgmatic.d/keys/$i_key.txt 
 						echo "This key was also sent to you by email"
 						read -p "Press enter to continue"
 					
@@ -505,6 +502,9 @@ unset NAME
 unset i 
 unset FILENAME
 unset FILENAME_NOFORMAT
+
+####--Cleanup--####
+
 cd $LXD
 for i in * 
 	do        
@@ -564,7 +564,7 @@ for i in *
 								echo "An email will be sent to $MAIL"
 								echo "$FILENAME was supposed to be removed, but still exists on the local server."
 								echo "Failed removing snapshot file from local server." | mutt  -s "Backup Failed" $MAIL
-								echo "A log file exists in $TEMP/backup_log_$START.txt"
+								echo "A log file exists in $TEMP/backup_log_$BEGIN.txt"
 								sleep 5s
 								exit 1 # Exit with general error
 
@@ -582,8 +582,8 @@ EOF
 								echo "Backup has finished successfully. $FILENAME has been created and backed up successfully." 
 								echo "An email will be sent to $MAIL"
 								END=$(date +'%H:%M:%S')
-								echo "Backup has finished successfully. $FILENAME has been created and backed up successfully. Backup started at $BEGIN and was completed at $END. Log and size of backup are in attachments" | mutt -s "Success: $NAME Backup" $MAIL -a $TEMP/backup_log_$BEGIN.txt -a /tmp/backup.txt #adicionar total de tempo ao email
-								rm /tmp/backup.txt
+								echo "Backup has finished successfully. $FILENAME has been created and backed up successfully. Backup started at $BEGIN and was completed at $END. Log and size of backup are in attachments" | mutt -s "Success: $NAME Backup" $MAIL -a $TEMP/backup_log_$BEGIN.txt -a /tmp/backup_$i.txt #adicionar total de tempo ao email
+								rm /tmp/backup_$i.txt
 							fi
                                                 
      
@@ -597,14 +597,14 @@ EOF
 					echo "An email will be sent to $MAIL"
 					echo "Creating $FILENAME on local server failed." 
 					echo "Creating $FILENAME on local server failed." | mutt  -s "Backup Failed" $MAIL
-					echo "A log file exists in $TEMP/backup_log_$START.txt"
+					echo "A log file exists in $TEMP/backup_log_$BEGIN.txt"
 					sleep 5s
 					exit 1 # Exit with general error
 
 				fi     
 done
 
-echo "A log file exists in $TEMP/backup_log_$START.txt"
+echo "A log file exists in $TEMP/backup_log_$BEGIN.txt"
 printf "\n"
 while true; 
 	do
