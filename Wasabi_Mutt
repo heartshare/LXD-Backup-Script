@@ -413,9 +413,15 @@ EOF
 				echo "Creating Repository for $i."
 				printf "\n"
 				sleep 2s
+
+/usr/bin/expect <(cat << EOF
+spawn borg create --verbose --filter AME --list --stats --show-rc --progress --compression zstd,22 $MNT/$NAME::$NAME-$BEGIN $TEMP/$FILENAME
+expect "Enter passphrase for key $MNT/$i:"
+send "$ENCRYPT\r"
+interact
+EOF
+)				
 				
-				borg create	--verbose --filter AME --list --stats --show-rc --progress --compression zstd,22 $MNT/$NAME::$NAME-$BEGIN $TEMP/$FILENAME_NOFORMAT
-		
 				echo "Pruning $i Repository"
 				printf "\n"
 				sleep 2s
