@@ -265,7 +265,7 @@ sleep 5s
 
 ####--Backup--####
 
-#Create borgmatic config file directory
+#Create borg config file directory
         mkdir /etc/borg.d/ 2>/dev/null >/dev/null
 		mkdir /etc/borg.d/keys 2>/dev/null >/dev/null
 		chmod 600 /etc/borg.d 2>/dev/null >/dev/null
