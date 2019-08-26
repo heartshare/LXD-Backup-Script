@@ -164,7 +164,7 @@ retention:
     #keep_secondly: 60
 
     # Number of minutely archives to keep.
-    #keep_minutely: 60
+    keep_minutely: 60
 
     # Number of hourly archives to keep.
     #keep_hourly: 24
