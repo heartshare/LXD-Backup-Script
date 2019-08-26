@@ -422,7 +422,7 @@ EOF
 				--show-rc                       \
 				--compression zstd,22           \
 												\
-				::'${NAME}-${BEGIN}'            \
+				::'$NAME-$BEGIN'            \
 				$TEMP/$FILENAME_NOFORMAT        \
 		
 				echo "Pruning $i Repository"
@@ -431,7 +431,7 @@ EOF
 				
 				borg prune                      \
 				--list                          \
-				--prefix '${NAME}-'				\
+				--prefix '$NAME-'				\
 				--show-rc                       \
 				--keep-daily    7               \
 				--keep-weekly   4               \
@@ -444,7 +444,7 @@ EOF
 				borg check						\
 				--repository-only				\
 				--repair						\
-				--prefix '${NAME}-'				\
+				--prefix '$NAME-'				\
 				
 				echo "Checking $i Archives"
 				
@@ -452,7 +452,7 @@ EOF
 				--archives-only					\
 				--verify-data					\
 				--repair						\
-				--prefix '${NAME}-'				\
+				--prefix '$NAME-'				\
 				--last 3						\
 				
 				####--Cleanup--####
