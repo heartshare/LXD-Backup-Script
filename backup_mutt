@@ -1,0 +1,293 @@
+#!/bin/bash
+
+BEGIN=$(date +'%d-%m_%H:%M:%S')
+
+TEMP=/tmp
+MNT=/S3FS
+BUCKET=inamatitest
+BUCKET_LOC=eu-central-1
+LXD=/var/lib/lxd/containers
+ENCRYPT=linux
+MAIL=webmaster@undebug.com
+
+exec > >(tee -i /var/log/backup_log_$BEGIN.txt)  #This file will log everything
+exec 2>&1
+
+mount -l | grep $MNT 
+
+if [ $? -ne 0 ]
+	# If success
+	then
+		s3fs $BUCKET $MNT -o passwd_file=${HOME}/.passwd-s3fs -o url=https://s3.$BUCKET_LOC.wasabisys.com	
+	fi
+
+cd $LXD
+for i in *
+	do
+		# Now delete the 'lxd-image-backup-$NAME' image
+		lxc image delete lxd-image-backup-$NAME 2>/dev/null >/dev/null
+					
+		# And delete the temporary 'backup' snapshot
+		lxc delete local:$NAME/backup 2>/dev/null >/dev/null	
+done
+
+cd $LXD
+for i in * 
+	do
+	    NAME="$i"
+		
+		# Filename with no format (container_name.snapshot-backup)
+		FILENAME_NOFORMAT="snapshot-backup-$NAME"
+		
+		# Full Filename with format (container_name.snapshot-backup.format)
+		FILENAME="$FILENAME_NOFORMAT.tar.gz"
+		
+	    DIRECTORY=$MNT/$i
+		if [ ! -d "$DIRECTORY" ]
+   			then
+			    				
+				# Check if the required arguments are not empty
+				if [ "$i" == '' ];
+		
+					# If one or more arguments are empty, produce an error
+					then
+						exit 1 # Exit with general error
+					# If none of these arguments are empty, the script can proceed
+					else			 
+/usr/bin/expect <(cat << EOF
+spawn borg init --encryption=repokey-blake2 $MNT/$i
+expect "Enter new passphrase:"
+send "$ENCRYPT\r"
+expect "Enter same passphrase again:"
+send "$ENCRYPT\r"
+expect "Do you want your passphrase to be displayed for verification?*:"
+send "n\r"
+interact
+EOF
+)
+
+/usr/bin/expect <(cat << EOF
+spawn borg info $MNT/$i 
+expect "Enter passphrase for key $MNT/$i:"
+send "$ENCRYPT\r"
+interact
+EOF
+)
+						if [ $? -ne 0 ]
+
+							# If success
+							then
+								echo "Failed to add new container $i to backup" | mutt -s "Failed to add container $i" $MAIL
+							else
+								borg key export $MNT/$i /etc/borg.d/keys/$i_Key.txt
+								echo "New container $i added to backup successfully. Attached Repo Key." | mutt -s "New container $i added" $MAIL -a /etc/borg.d/keys/$i_key.txt						
+								
+								# Create a snapshot of the container, with the snapshot name being 'backup'
+								lxc snapshot $NAME backup
+								
+								# Publish this snapshot temporarily with an alias name of 'lxd-image-backup-$NAME'
+								lxc publish $NAME/backup --alias lxd-image-backup-$NAME
+								
+								# Export the 'lxd-image-backup-$NAME' image, this will save the export in a 'tar.gz' format to the specified temporary location
+								#lxc image export lxd-image-backup-$NAME .
+								lxc image export lxd-image-backup-$NAME $TEMP/$FILENAME_NOFORMAT
+						
+/usr/bin/expect <(cat << EOF
+spawn borg create --verbose --filter AME --list --stats --show-rc --compression zstd,22 $MNT/$NAME::$NAME-$BEGIN $TEMP/$FILENAME
+expect "Enter passphrase for key $MNT/$i:"
+send "$ENCRYPT\r"
+interact
+EOF
+)				
+				
+/usr/bin/expect <(cat << EOF
+spawn borg prune --list --prefix $NAME- --show-rc	--keep-daily 7 --keep-weekly 4 --keep-monthly 6 $MNT/$i
+expect "Enter passphrase for key $MNT/$i:"
+send "$ENCRYPT\r"
+interact
+EOF
+)						
+				
+/usr/bin/expect <(cat << EOF
+spawn borg check --repository-only $MNT/$i
+expect "Enter passphrase for key $MNT/$i:"
+send "$ENCRYPT\r"
+interact
+EOF
+)						
+
+/usr/bin/expect <(cat << EOF
+spawn borg check --archives-only --verify-data --prefix $NAME- --last 3 $MNT/$i
+expect "Enter passphrase for key $MNT/$i:"
+send "$ENCRYPT\r"
+interact
+EOF
+)	
+
+ /usr/bin/expect <(cat << EOF
+spawn borg info $MNT/$i 
+expect "Enter passphrase for key $MNT/$i:"
+send "$ENCRYPT\r"
+interact
+EOF
+)
+					
+
+								####--Cleanup--####
+
+								# Now delete the 'lxd-image-backup-$NAME' image
+								lxc image delete lxd-image-backup-$NAME
+							
+								# And delete the temporary 'backup' snapshot
+								lxc delete local:$NAME/backup			
+							
+								# Verify snapshot file has been created
+		
+								if [ -f $TEMP/$FILENAME ]
+		
+									# If success
+									then					
+										# Remove snapshot file from the local server
+										rm $TEMP/$FILENAME
+															
+										# Verify snapshot file has been removed from the local server
+										if [ -f $TEMP/$FILENAME ]
+		
+											# If success
+											then	
+												# Send an email explaining this failure
+												echo "Failed removing snapshot file from local server." | mutt  -s "Backup Failed" $MAIL
+										
+											# If failure
+											else
+				
+ /usr/bin/expect <(cat << EOF
+spawn borg info $MNT/$i 
+expect "Enter passphrase for key $MNT/$i:"
+send "$ENCRYPT\r"
+interact
+EOF
+) >> /tmp/backup_$i.txt						
+												END=$(date +'%H:%M:%S')
+												echo "Backup has finished successfully. $FILENAME has been created and backed up successfully. Backup started at $BEGIN and was completed at $END. Log and size of backup are in attachments" | mutt -s "Success: $NAME Backup" $MAIL -a /var/log/backup_log_$BEGIN.txt -a /tmp/backup_$i.txt 
+												rm /tmp/backup_$i.txt
+										fi                
+									# If failure
+									else		
+										# Send an email explaining this failure
+										echo "Creating $FILENAME on local server failed." | mutt  -s "Backup Failed" $MAIL
+								fi     
+						fi
+							
+				fi		
+																	
+						
+			
+			else
+				# Create a snapshot of the container, with the snapshot name being 'backup'
+						lxc snapshot $NAME backup
+						
+						# Publish this snapshot temporarily with an alias name of 'lxd-image-backup-$NAME'
+						lxc publish $NAME/backup --alias lxd-image-backup-$NAME
+						
+						# Export the 'lxd-image-backup-$NAME' image, this will save the export in a 'tar.gz' format to the specified temporary location
+						#lxc image export lxd-image-backup-$NAME .
+						lxc image export lxd-image-backup-$NAME $TEMP/$FILENAME_NOFORMAT
+						
+/usr/bin/expect <(cat << EOF
+spawn borg create --verbose --filter AME --list --stats --show-rc --compression zstd,22 $MNT/$NAME::$NAME-$BEGIN $TEMP/$FILENAME
+expect "Enter passphrase for key $MNT/$i:"
+send "$ENCRYPT\r"
+interact
+EOF
+)				
+				
+/usr/bin/expect <(cat << EOF
+spawn borg prune --list --prefix $NAME- --show-rc	--keep-daily 7 --keep-weekly 4 --keep-monthly 6 $MNT/$i
+expect "Enter passphrase for key $MNT/$i:"
+send "$ENCRYPT\r"
+interact
+EOF
+)						
+				
+/usr/bin/expect <(cat << EOF
+spawn borg check --repository-only $MNT/$i
+expect "Enter passphrase for key $MNT/$i:"
+send "$ENCRYPT\r"
+interact
+EOF
+)						
+
+/usr/bin/expect <(cat << EOF
+spawn borg check --archives-only --verify-data --prefix $NAME- --last 3 $MNT/$i
+expect "Enter passphrase for key $MNT/$i:"
+send "$ENCRYPT\r"
+interact
+EOF
+)	
+
+						####--Cleanup--####
+
+						# Now delete the 'lxd-image-backup-$NAME' image
+						lxc image delete lxd-image-backup-$NAME
+					
+						# And delete the temporary 'backup' snapshot
+						lxc delete local:$NAME/backup			
+					
+						# Verify snapshot file has been created
+		
+						if [ -f $TEMP/$FILENAME ]
+		
+							# If success
+							then					
+								# Remove snapshot file from the local server
+								rm $TEMP/$FILENAME
+													
+								# Verify snapshot file has been removed from the local server
+								if [ -f $TEMP/$FILENAME ]
+		
+									# If success
+									then	
+										# Send an email explaining this failure
+										echo "Failed removing snapshot file from local server." | mutt  -s "Backup Failed" $MAIL
+												
+									# If failure
+									else
+				
+ /usr/bin/expect <(cat << EOF
+spawn borg info $MNT/$i 
+expect "Enter passphrase for key $MNT/$i:"
+send "$ENCRYPT\r"
+interact
+EOF
+) >> /tmp/backup_$i.txt						
+										END=$(date +'%H:%M:%S')
+										echo "Backup has finished successfully. $FILENAME has been created and backed up successfully. Backup started at $BEGIN and was completed at $END. Log and size of backup are in attachments" | mutt -s "Success: $NAME Backup" $MAIL -a /var/log/backup_log_$BEGIN.txt -a /tmp/backup_$i.txt 
+										rm /tmp/backup_$i.txt
+									fi                
+							# If failure
+							else		
+								# Send an email explaining this failure
+								echo "Creating $FILENAME on local server failed." | mutt  -s "Backup Failed" $MAIL
+							fi     
+					fi
+done
+
+#Missing Backup Detection
+ls $MNT >> $TEMP/comp1.txt
+
+ls $LXD >> $TEMP/comp2.txt
+
+sort $TEMP/comp1.txt >> $TEMP/comp1.sorted
+sort $TEMP/comp2.txt >> $TEMP/comp2.sorted
+
+COMPARE=$(diff $TEMP/comp1.sorted $TEMP/comp2.sorted)
+if [ "$COMPARE" != "" ]
+	then
+		echo "There is a backup for a container that no longer exists in the system. Missing containers:
+$COMPARE" | mutt -s "Container Missing" $MAIL
+	fi
+	
+rm $TEMP/comp*
+
+exit 0 # Successful exit
