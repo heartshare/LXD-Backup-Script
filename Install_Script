@@ -5,7 +5,6 @@ BEGIN=$(date +'%d-%m_%H:%M:%S')
 ##
 ## Required software libaries:
 ##   'mutt'             Used for sending email using the 'mail' command
-##   'pushover'         Used to send notifications
 ##   'borgbackup'       Used for backing up files with encryption, retention and deduplication
 ##   'WGET'             Needed to get the cuswtomized borgmatic scripts
 ##   'Expect'           Needed to provide interactive input throughout the script
@@ -28,7 +27,6 @@ A SMTP mail server or a Pushover account is also needed to send the backup notif
 			 
 Depending on your choices the following software may be installed:
 Mutt             Used for sending email using the 'mail' command
-Pushover         Used to send notifications if chosen
 Borgbackup       Used for backing up files with encryption, retention and deduplication
 Wget             Needed to get the cuswtomized borgmatic scripts
 Expect           Needed to provide interactive input throughout the script
@@ -366,12 +364,11 @@ while [[ $yn != y ]]
 
 		# Parent menu items declared here
 		PS3="Please select your notification preference: "
-			select NOTIF in Mutt Pushover
+			select NOTIF in Mutt
 				do
 					# case statement to compare the first menu items
 					case $NOTIF in
 						[Mutt]*) echo "You selected Mutt"; sleep 2s;break;;
-						[Pushover]*) echo "You selected Pushover"; sleep 2s;break;;
 								*) echo "Invalid Option";;
 					esac
 			done
