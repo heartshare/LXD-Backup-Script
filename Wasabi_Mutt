@@ -557,5 +557,54 @@ while true;
 				* ) echo "Please answer yes or no.";;
 		esac
 done	
-				
+
+printf "\n"
+while true; 
+	do
+		read -p "Do you wish to run this backup as a service?(y/n)" yn
+		case $yn in
+			[Yy]* ) break;;
+			[Nn]* ) break;exit 0;
+				* ) echo "Please answer yes or no.";;
+		esac
+done	
+
+echo "Creating Service"
+echo "----------------"
+sleep 3s
+
+set -x                               #Sends output to terminal
+(wget -P $TEMP https://raw.githubusercontent.com/The-Inamati/LXD-Backup-Script/new-backup-feature/backup_mutt)
+mv $TEMP/backup_mutt /etc/borg.d/backup.sh
+{ set +x; } 2>/dev/null              #Stops output to terminal and hides set+x from output
+chmod +x /etc/borg.d/backup.sh
+MNT=${MNT#?}
+TEMP=${TEMP#?}
+LXD=${LXD#?}
+sed -i -e "s/\${MNT}/$MNT/" -e "s/\${BUCKET}/$BUCKET/" -e "s/\${BUCKET_LOC}/$BUCKET_LOC/" -e "s/\${LXD}/$LXD/" -e "s/\${ENCRYPT}/$ENCRYPT/" -e "s/\${MAIL}/$MAIL/" -e "s/\${TEMP}/$TEMP/" -e "s/\${FILENAME_NOFORMAT}/$FILENAME_NOFORMAT/" -e "s/\${FILENAME}/$FILENAME/" /etc/borgmatic.d/$i.yaml   #Substitutes variables in downloaded configuration file
+
+LXD="/$LXD"
+MNT="/$MNT"  #Puts the first character again
+TEMP="/$TEMP"
+
+set -x                               #Sends output to terminal
+(wget -P $TEMP https://raw.githubusercontent.com/The-Inamati/LXD-Backup-Script/new-backup-feature/backup.timer)
+mv $TEMP/backup.timer /etc/systemd/system/
+{ set +x; } 2>/dev/null              #Stops output to terminal and hides set+x from output
+
+set -x                               #Sends output to terminal
+(wget -P $TEMP https://raw.githubusercontent.com/The-Inamati/LXD-Backup-Script/new-backup-feature/backup.service)
+mv $TEMP/backup.service /etc/systemd/system/
+{ set +x; } 2>/dev/null              #Stops output to terminal and hides set+x from output
+
+
+systemctl enable backup.timer
+systemctl enable backup.service
+systemctl start backup.timer
+
+enable backup.timer
+start backup.timer
+
+echo "Service created successfully."
+
 exit 0 # Successful exit
