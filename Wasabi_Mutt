@@ -564,7 +564,7 @@ while true;
 		read -p "Do you wish to run this backup as a service?(y/n)" yn
 		case $yn in
 			[Yy]* ) break;;
-			[Nn]* ) break;exit 0;;
+			[Nn]* ) break;exit 0;
 				* ) echo "Please answer yes or no.";;
 		esac
 done	
@@ -602,6 +602,7 @@ systemctl enable backup.timer
 systemctl enable backup.service
 systemctl start backup.timer
 
-echo "Service created successfully."
+echo "Service created successfully. Backup will run everyday at 3am. To change this edit the file at /etc/systemd/system/backup.timer."
+sleep 7s
 
 exit 0 # Successful exit
