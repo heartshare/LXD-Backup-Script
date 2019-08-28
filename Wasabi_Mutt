@@ -351,15 +351,15 @@ EOF
 								sleep 3s
 							fi
 
-						borg key export $MNT/$i /etc/borg.d/keys/$i_Key.txt
+						borg key export $MNT/$i /etc/borg.d/keys/$i-Key.txt
 						printf "\n"
 						echo "Your encryption key for this repo is:"
 						printf "\n"
 						printf "\n"
-						cat /etc/borg.d/keys/$i_Key.txt
+						cat /etc/borg.d/keys/$i-Key.txt
 						printf "\n"
-						echo "Please save the key or the file with it located in /etc/borg.d/keys/$i_Key.txt"
-						echo "Key for $i exported successfully" | mutt -s "Repo key for $i" $MAIL -a /etc/borg.d/keys/$i_key.txt 
+						echo "Please save the key or the file with it located in /etc/borg.d/keys/$i-Key.txt"
+						echo "Key for $i exported successfully" | mutt -s "Repo key for $i" $MAIL -a /etc/borg.d/keys/$i-key.txt 
 						echo "This key was also sent to you by email"
 						read -p "Press enter to continue"
 					
@@ -564,7 +564,7 @@ while true;
 		read -p "Do you wish to run this backup as a service?(y/n)" yn
 		case $yn in
 			[Yy]* ) break;;
-			[Nn]* ) break;exit 0;;
+			[Nn]* ) break;exit 0;
 				* ) echo "Please answer yes or no.";;
 		esac
 done	
@@ -581,7 +581,7 @@ chmod +x /etc/borg.d/backup.sh
 MNT=${MNT#?}
 TEMP=${TEMP#?}
 LXD=${LXD#?}
-sed -i -e "s/\${MNT}/$MNT/" -e "s/\${BUCKET}/$BUCKET/" -e "s/\${BUCKET_LOC}/$BUCKET_LOC/" -e "s/\${LXD}/$LXD/" -e "s/\${ENCRYPT}/$ENCRYPT/" -e "s/\${MAIL}/$MAIL/" -e "s/\${TEMP}/$TEMP/" -e "s/\${FILENAME_NOFORMAT}/$FILENAME_NOFORMAT/" -e "s/\${FILENAME}/$FILENAME/" /etc/borgmatic.d/$i.yaml   #Substitutes variables in downloaded configuration file
+sed -i -e "s/\${MNT}/$MNT/" -e "s/\${BUCKET}/$BUCKET/" -e "s/\${BUCKET_LOC}/$BUCKET_LOC/" -e "s/\${LXD}/$LXD/" -e "s/\${ENCRYPT}/$ENCRYPT/" -e "s/\${MAIL}/$MAIL/" -e "s/\${TEMP}/$TEMP/" /etc/borgmatic.d/$i.yaml   #Substitutes variables in downloaded configuration file
 
 LXD="/$LXD"
 MNT="/$MNT"  #Puts the first character again
@@ -603,9 +603,7 @@ systemctl enable backup.service
 systemctl start backup.timer
 
 echo "Service created successfully. Backup will run everyday at 3am. To change this edit the file at /etc/systemd/system/backup.timer."
+rm $TEMP/Wasabi_Mutt
 sleep 7s
-
-#Script removes itself
-rm $0
 
 exit 0 # Successful exit
