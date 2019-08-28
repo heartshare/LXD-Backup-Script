@@ -574,7 +574,7 @@ echo "----------------"
 sleep 3s
 
 set -x                               #Sends output to terminal
-(wget -P $TEMP https://raw.githubusercontent.com/The-Inamati/LXD-Backup-Script/new-backup-feature/backup_mutt)
+(wget -P $TEMP https://raw.githubusercontent.com/The-Inamati/LXD-Backup-Script/master/backup_mutt)
 mv $TEMP/backup_mutt /etc/borg.d/backup.sh
 { set +x; } 2>/dev/null              #Stops output to terminal and hides set+x from output
 chmod +x /etc/borg.d/backup.sh
@@ -588,12 +588,12 @@ MNT="/$MNT"  #Puts the first character again
 TEMP="/$TEMP"
 
 set -x                               #Sends output to terminal
-(wget -P $TEMP https://raw.githubusercontent.com/The-Inamati/LXD-Backup-Script/new-backup-feature/backup.timer)
+(wget -P $TEMP https://raw.githubusercontent.com/The-Inamati/LXD-Backup-Script/master/backup.timer)
 mv $TEMP/backup.timer /etc/systemd/system/
 { set +x; } 2>/dev/null              #Stops output to terminal and hides set+x from output
 
 set -x                               #Sends output to terminal
-(wget -P $TEMP https://raw.githubusercontent.com/The-Inamati/LXD-Backup-Script/new-backup-feature/backup.service)
+(wget -P $TEMP https://raw.githubusercontent.com/The-Inamati/LXD-Backup-Script/master/backup.service)
 mv $TEMP/backup.service /etc/systemd/system/
 { set +x; } 2>/dev/null              #Stops output to terminal and hides set+x from output
 
