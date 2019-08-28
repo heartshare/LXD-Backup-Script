@@ -1,24 +1,17 @@
 #!/bin/bash
 
-BEGIN=$(date +%Y-%m-%d-%H:%M)
-
+# This should be at the top of the script to get the start time of the script
+BEGIN=$(date +'%d-%m_%H:%M:%S')
 ##
 ## Required software libaries:
 ##   'mutt'             Used for sending email using the 'mail' command
-##   'pushover'         Used to send notifications
 ##   'borgbackup'       Used for backing up files with encryption, retention and deduplication
-##   'borgmatic'        Simplifies borg usage and configuration
-##   'Python"           Required by PIP and connected to borgmatic installation
-##   'PIP'              Necessary to install borgmatic
 ##   'WGET'             Needed to get the cuswtomized borgmatic scripts
 ##   'Expect'           Needed to provide interactive input throughout the script
 ##   'S3FS'             Needed to mount S3 bucket as FS
 
 # Clear terminal window
 clear
-
-exec > >(tee -i $TEMP/backup_log_$BEGIN.txt)  #This file will log everything
-exec 2>&1
 
 #Script Introduction
 echo "Hi,
@@ -34,11 +27,7 @@ A SMTP mail server or a Pushover account is also needed to send the backup notif
 			 
 Depending on your choices the following software may be installed:
 Mutt             Used for sending email using the 'mail' command
-Pushover         Used to send notifications if chosen
 Borgbackup       Used for backing up files with encryption, retention and deduplication
-Borgmatic        Simplifies borg usage and configuration
-Python           Required by PIP and connected to borgmatic installation
-Pip              Necessary to install borgmatic
 Wget             Needed to get the cuswtomized borgmatic scripts
 Expect           Needed to provide interactive input throughout the script
 S3FS             Needed to mount S3 bucket as FS
@@ -150,6 +139,9 @@ while true
             esac
 done
 
+exec > >(tee -i $TEMP/backup_log_$BEGIN.txt)  #This file will log everything
+exec 2>&1
+
 mkdir $TEMP 2>/dev/null >/dev/null
 
 
@@ -208,103 +200,6 @@ if [ $? -ne 0 ]
 		sleep 2s
 	fi
 
-printf "\n"
-
-# Checking to see if the Python3 is installed on your system
-# Used to run PIP
-PYTHON='python3'     
-echo "Checking to see if '$PYTHON' is installed on your system."
-printf "\n"
-sleep 2s
-
-dpkg -s $PYTHON 2>/dev/null >/dev/null
-
-if [ $? -ne 0 ]
-
-	# If success
-	then
-		echo "The '$PYTHON' package is not installed on your system."
-		echo "Package '$PYTHON' will now be installed."
-		printf "\n"
-		sleep 2s
-		INSTALL=$
-		set -x                               #Sends output to terminal
-		(apt install $PYTHON -y) 
-		{ set +x; } 2>/dev/null              #Stops output to terminal and hides set+x from output
-
-			if [ $? -eq 0 ]
-
-				# If success
-				then
-					echo "The '$PYTHON' package was installed successfully."
-					echo "..."
-					printf "\n"
-					sleep 2s
-				# If failure
-				else
-					echo "Install of '$PYTHON' package failed."
-					printf "\n"
-					echo "Please try installing it manually."
-					printf "\n"
-					sleep 5s
-					exit 1 # Exit with general error
-				fi
-	else
-		echo "The '$PYTHON' package is installed on your system."
-		echo "..."
-		printf "\n"
-		sleep 2s
-	fi
-
-printf "\n"
-
-# Checking to see if the PIP package manager is installed on your system
-# Used to install borgmatic
-PIP='python3-pip'     
-echo "Checking to see if '$PIP' is installed on your system."
-printf "\n"
-sleep 2s
-
-dpkg -s $PIP 2>/dev/null >/dev/null
-
-if [ $? -ne 0 ]
-
-	# If success
-	then
-		echo "The '$PIP' package is not installed on your system."
-		echo "Package '$PIP' will now be installed."
-		printf "\n"
-		sleep 2s
-		INSTALL=$
-		set -x                               #Sends output to terminal
-		(apt install $PIP -y) 
-		{ set +x; } 2>/dev/null              #Stops output to terminal and hides set+x from output
-
-			if [ $? -eq 0 ]
-
-				# If success
-				then
-					echo "The '$PIP' package was installed successfully."
-					echo "..."
-					printf "\n"
-					sleep 2s
-				# If failure
-				else
-					echo "Install of '$PIP' package failed."
-					printf "\n"
-					echo "Please try installing it manually."
-					printf "\n"
-					sleep 5s
-					exit 1 # Exit with general error
-				fi
-	else
-		echo "The '$PIP' package is installed on your system."
-		echo "..."
-		printf "\n"
-		sleep 2s
-	fi
-
-printf "\n"
 printf "\n"
 
 # Checking to see if the WGET package manager is installed on your system
@@ -403,54 +298,6 @@ if [ $? -ne 0 ]
 
 printf "\n"
 
-# Checking to see if the Borgmatic package is installed on your system
-# Simplifies borg usage
-BORGMATIC='borgmatic'     
-echo "Checking to see if '$BORGMATIC' is installed on your system."
-printf "\n"
-sleep 2s
-
-BORGMATIC2=$(pip3 list --format=columns | grep $BORGMATIC)
-
-if [ $? -ne 0 ]
-
-	# If success
-	then
-		echo "The '$BORGMATIC' module is not installed on your system."
-		echo "Package '$BORGMATIC' will now be installed."
-		printf "\n"
-		sleep 2s
-		INSTALL=$
-		set -x                               #Sends output to terminal
-		(pip3 install --user --upgrade borgmatic) 
-		{ set +x; } 2>/dev/null              #Stops output to terminal and hides set+x from output
-
-			if [ $? -eq 0 ]
-
-				# If success
-				then
-					echo "The '$BORGMATIC' module was installed successfully."
-					echo "..."
-					printf "\n"
-					sleep 2s
-				# If failure
-				else
-					echo "Install of '$BORGMATIC' module failed."
-					printf "\n"
-					echo "Please try installing it manually."
-					printf "\n"
-					sleep 5s
-					exit 1 # Exit with general error
-				fi
-	else
-		echo "The '$BORGMATIC' module is installed on your system."
-		echo "..."
-		printf "\n"
-		sleep 2s
-	fi
-
-printf "\n"
-
 echo "*******************************"
 echo "Finished checking for packages."
 echo "*******************************"
@@ -458,22 +305,8 @@ printf "\n"
 printf "\n"
 sleep 2s
 
-########--Validation--########
-
 # Clear terminal window
 clear
-
-echo "Verifying Configuration Files"
-echo "-----------------------------"
-
-#Create borgmatic config file directory
-mkdir /etc/borgmatic.d/ 2>/dev/null >/dev/null
-
-#Add Borgmatic to PATH
-PATH="/root/.local/bin:${PATH}"
-sed -i '$ d' /etc/environment
-echo "PATH=$PATH:/root/.local/bin" >> /etc/environment
-echo "PATH=$PATH:/root/.local/bin" >> ~/.bashrc
 
 #Specify containers location
 while true 
@@ -502,111 +335,8 @@ done
 if [ "${LXD: -1}" == "/" ]  #Checks if there is a forward slash in the path and if there is removes it
 	then 
 		LXD=${LXD%?}
-	fi
-
-cd $LXD
-for i in * 
-	do
-		NAME="$i"                   # The Container Name - Used to categorize backups
-
-		# Filename with no format (container_name.snapshot-backup)
-		FILENAME_NOFORMAT="snapshot-backup-$NAME"
-
-		# Full Filename with format (container_name.snapshot-backup.format)
-		FILENAME="$FILENAME_NOFORMAT.tar.gz"
-
-		echo "Verifying Configuration file for $i"
-		echo "-----------------------------------"
-
-		# Location of LXD Containers
-		GLOBAL_LXD='$LXD/$i'
-
-		# Checking to see if borgmatic configuration files exist
-		echo "Checking for $i configuration file."
-		printf "\n"
-		sleep 1s
-		
-		BORGMATICCONF=$(ls -a /etc/borgmatic.d/ | grep $i.yaml)
-
-			if [ $? -ne 0 ]
-
-				# If success
-				then
-					echo "The borgmatic configuration file does not exist."
-					echo "The configuration file will now be generated."
-					printf "\n"
-					sleep 3s
-						set -x                               #Sends output to terminal
-						wget -P $TEMP https://raw.githubusercontent.com/The-Inamati/LXD-Backup-Script/master/Borgmatic_Script
-						{ set +x; } 2>/dev/null              #Stops output to terminal and hides set+x from output
-						mv $TEMP/Borgmatic_Script /etc/borgmatic.d/$i.yaml
-						# delete the first character from the string inside the variable 
-						MNT=${MNT#?}
-						TEMP=${TEMP#?}
-						sed -i -e "s/\${TEMP}/$TEMP/" -e "s/\${FILENAME_NOFORMAT}/$FILENAME_NOFORMAT/" -e "s/\${MNT}/$MNT/" -e "s/\${ENCRYPT}/$ENCRYPT/" /etc/borgmatic.d/$i.yaml   #Substitutes variables in downloaded configuration file
-
-							if [ $? -eq 0 ]
-
-								# If success
-								then
-									MNT="/$MNT"  #Puts the first character again
-									TEMP="/$TEMP"
-									echo "The configuration file was generated successfully."
-									echo "..."
-									printf "\n"
-									sleep 5s
-								# If failure
-								else
-									echo "Could not generate configuration file."
-									printf "\n"
-									echo "Please try doing it manually."
-									printf "\n"				
-									exit 1 # Exit with general error
-								fi
-				else
-					echo "A configuration file exists at '/etc/borgmatic.d/'"
-					echo "..."
-					printf "\n"
-					sleep 2s
-				fi
-
-				#Prompt to edit borgmatic configuration file
-				while true; 
-					do
-						read -p "Do you wish to edit the configuration file now?(y/n)" yn
-							case $yn in
-								[Yy]* ) nano /etc/borgmatic.d/$i.yaml;break;;
-								[Nn]* ) break;;
-									* ) echo "Please answer yes or no.";;
-							esac
-				done
-
-		#Configuration file validation
-		echo "Validating config file"
-		echo "----------------------"
-		sleep 2s
-
-		validate-borgmatic-config
-
-			while [ $? -ne 0 ]
-
-				do
-					printf "\n"
-					echo "Please verify the file something is not right."
-					sleep 5s
-					nano /etc/borgmatic.d/$i.yaml
-				
-					validate-borgmatic-config
-			done
-
-		printf "\n"
-		echo "File for $i validated successfully."
-		sleep 3s
-done
-          
-echo "Configuration Files Verified."
-echo "-----------------------------"     
-
+	fi  
+  
 ####-Definition of backup and notification settings
 
 #Clear the terminal
@@ -619,12 +349,11 @@ while [[ $yn != y ]]
 	do
 		# Parent menu items declared here
 		PS3="Please select your backup preference: "
-			select BACKUP in Local RClone Wasabi
+			select BACKUP in Local Wasabi
 				do
 					# case statement to compare the first menu items
 					case $BACKUP in
 						[Local]*) echo "You selected Local";sleep 2s;break;;
-						[RClone]*) echo "You selected RClone";sleep 2s;break;;
 						[Wasabi]*) echo "You selected Wasabi";break;sleep 2s;;
 								*) echo "Invalid Option";;
 					esac
@@ -635,12 +364,11 @@ while [[ $yn != y ]]
 
 		# Parent menu items declared here
 		PS3="Please select your notification preference: "
-			select NOTIF in Mutt Pushover
+			select NOTIF in Mutt
 				do
 					# case statement to compare the first menu items
 					case $NOTIF in
 						[Mutt]*) echo "You selected Mutt"; sleep 2s;break;;
-						[Pushover]*) echo "You selected Pushover"; sleep 2s;break;;
 								*) echo "Invalid Option";;
 					esac
 			done

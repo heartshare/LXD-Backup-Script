@@ -1,0 +1,9 @@
+[Unit]
+Description=Automatic LXD Backup
+
+[Service]
+Type=simple
+ExecStart=/bin/bash /etc/borg.d/backup.sh
+
+[Install]
+WantedBy=multi-user.target
