@@ -605,4 +605,7 @@ systemctl start backup.timer
 echo "Service created successfully. Backup will run everyday at 3am. To change this edit the file at /etc/systemd/system/backup.timer."
 sleep 7s
 
+#Script removes itself
+rm $0
+
 exit 0 # Successful exit
