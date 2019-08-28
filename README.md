@@ -15,6 +15,19 @@ I desperately needed something that would backup my LXD containers automatically
 - Auto Detection of Missing Containers and Notification
 - Use of S3 Storage in Wasabi as Mount for Backups
 
+### How to Run
+
+Download the file Install_Script, make it executable and run it as root. It will do everything on its own.
+
+### Notes
+
+This script generates a new backup everyday at 3am. If you want to change this you can edit the file at /etc/systemd/system/backup.timer.
+All files relating to running as a service are at /etv/systemd/system/.
+A log file is saved everytime it runs at /var/log/.
+The configuration file for Mutt is saved at ~/.muttrc.
+Keys for Wasabi are saved at ~/.passwd-s3fs.
+Keys for Borg Repositories are saved at /etc/borg.d/keys/.
+
 ### Planned
 
 - Pushover Support (without the attachments because Pushover only supports images)
