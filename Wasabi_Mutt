@@ -602,9 +602,6 @@ systemctl enable backup.timer
 systemctl enable backup.service
 systemctl start backup.timer
 
-enable backup.timer
-start backup.timer
-
 echo "Service created successfully."
 
 exit 0 # Successful exit
