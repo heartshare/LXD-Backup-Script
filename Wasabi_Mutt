@@ -564,7 +564,7 @@ while true;
 		read -p "Do you wish to run this backup as a service?(y/n)" yn
 		case $yn in
 			[Yy]* ) break;;
-			[Nn]* ) break;exit 0;
+			[Nn]* ) break;exit 0;;
 				* ) echo "Please answer yes or no.";;
 		esac
 done	
