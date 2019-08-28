@@ -33,6 +33,20 @@ Keys for Wasabi are saved at ~/.passwd-s3fs.
 
 Keys for Borg Repositories are saved at /etc/borg.d/keys/.
 
+### Wasabi
+
+For Wasabi you need the following:
+- Access Key
+- Secret Key
+- Bucket Name
+- Bucket Region
+
+### Mutt
+
+To use Mutt you need to have a mail server working and an available email account to be used for notifications.
+
+Or you can use your Gmail SMTP details.
+
 ### Planned
 
 - Pushover Support (without the attachments because Pushover only supports images)
@@ -40,6 +54,7 @@ Keys for Borg Repositories are saved at /etc/borg.d/keys/.
 - Possibly Gotify Support also
 - Automatic LXD Restore Script
 - Script Optimization (As I learn more about bash scripting)
+- Plus whatever you tell me that makes sense.
 
 ### Disclaimer
 
