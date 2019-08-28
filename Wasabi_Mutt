@@ -127,7 +127,7 @@ while [ "$ENCRYPT1" != "$ENCRYPT2" ];
 		read -s -p "Please confirm the passphrase: `echo $'\n> '`" ENCRYPT2
 done
 
-ENCRYPT=$ENCRYPT2
+ENCRYPT=$"ENCRYPT2"
 
 # Checking to see if the Mail package is installed on your system
 # Used for sending email confirmations of the backup process
@@ -214,7 +214,7 @@ while [ "$SMTP_PASS1" != "$SMTP_PASS2" ];
 		read -s -p "Please confirm your SMTP password: `echo $'\n> '`" SMTP_PASS2
 done
 
-SMTP_PASS=$SMTP_PASS2
+SMTP_PASS=$"SMTP_PASS2"
 
 #Prompt to define sender name
 while true 
