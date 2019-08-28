@@ -399,5 +399,4 @@ wget -P $DIR https://raw.githubusercontent.com/The-Inamati/LXD-Backup-Script/mas
 
 source ${BACKUP}_${NOTIF}
 
-rm $0
 #Continues in backup file chosen by user
