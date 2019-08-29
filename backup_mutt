@@ -74,7 +74,7 @@ EOF
 							then
 								echo "Failed to add new container $i to backup" | mutt -s "Failed to add container $i" ${MAIL}
 							else
-								borg key export ${MNT}/$i /etc/borg.d/keys/$i-Key.txt
+								borg key export ${MNT}/$i /etc/borg.d/keys/$i-key.txt
 								echo "New container $i added to backup successfully. Attached Repo Key." | mutt -s "New container $i added" ${MAIL} -a /etc/borg.d/keys/$i-key.txt						
 								
 								# Create a snapshot of the container, with the snapshot name being 'backup'
