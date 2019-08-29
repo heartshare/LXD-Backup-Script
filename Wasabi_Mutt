@@ -299,7 +299,7 @@ for i in *
 /usr/bin/expect <(cat << EOF                                        #Repo name same as container name
 spawn borg info $MNT/$i 
 expect "Enter passphrase for key $MNT/$i:"
-send "$ENCRYPT\r"
+send "$'ENCRYPT'\r"
 interact
 EOF
 )
