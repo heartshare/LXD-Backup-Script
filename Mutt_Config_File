@@ -1,13 +1,13 @@
 # From Section
-set from = "$FROM_MAIL"
-set realname = "$FROM_NAME"
+set from = "${FROM_MAIL}"
+set realname = "${FROM_NAME}"
 set smtp_authenticators="plain"
 
 # SMTP Details
-set smtp_url = "smtp://$FROM_MAIL@$SMTP_URL"
-set smtp_pass = "$SMTP_PASS"
-set imap_user = "$FROM_MAIL"
-set imap_pass = "$SMTP_PASS"
+set smtp_url = "smtp://${FROM_MAIL}@${SMTP_URL}"
+set smtp_pass = "${SMTP_PASS}"
+set imap_user = "${FROM_MAIL}"
+set imap_pass = "${SMTP_PASS}"
 
 # Mailbox
 set folder = "imaps://imap.domain.com:993"
