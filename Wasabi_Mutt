@@ -9,8 +9,8 @@ while true
 		read -p "You entered '$ACCESS_KEY' is this correct?(y/n)" yn
 			case $yn in
 			[Yy]* ) break;;
-			[Nn]* ) echo "Please try again:";sleep 2s;;
-				* ) echo "Please answer yes or no.";;
+			[Nn]* ) echo -e "${RED}Please try again:${RESET}";sleep 2s;;
+				* ) echo -e "${RED}Please answer yes or no.${RESET}";;
 			esac
 done
 
@@ -21,8 +21,8 @@ while true
 		read -p "You entered '$SECRET_KEY' is this correct?(y/n)" yn
 			case $yn in
 			[Yy]* ) break;;
-			[Nn]* ) echo "Please try again:";sleep 2s;;
-                * ) echo "Please answer yes or no.";;
+			[Nn]* ) echo -e "${RED}Please try again:${RESET}";sleep 2s;;
+                * ) echo -e "${RED}Please answer yes or no.${RESET}";;
 			esac
 done
 
@@ -34,8 +34,8 @@ while true
 		read -p "You selected '$BUCKET_LOC' is this correct?(y/n)" yn
 			case $yn in
 			[Yy]* ) break;;
-			[Nn]* ) echo "Please try again:";sleep 2s;;
-                * ) echo "Please answer yes or no.";;
+			[Nn]* ) echo -e "${RED}Please try again:${RESET}";sleep 2s;;
+                * ) echo -e "${RED}Please answer yes or no.${RESET}";;
 			esac
 done
 				
@@ -46,8 +46,8 @@ while true
 		read -p "You entered '$BUCKET' is this correct?(y/n)" yn
 			case $yn in
 			[Yy]* ) break;;
-			[Nn]* ) echo "Please try again:";sleep 2s;;
-                * ) echo "Please answer yes or no.";;
+			[Nn]* ) echo -e "${RED}Please try again:${RESET}";sleep 2s;;
+                * ) echo -e "${RED}Please answer yes or no.${RESET}";;
 			esac
 done
 
@@ -59,8 +59,8 @@ while true
 		read -p "You selected '$MNT' is this correct?(y/n)" yn
 			case $yn in
 			[Yy]* ) break;;
-			[Nn]* ) echo "Please try again:";sleep 2s;;
-				* ) echo "Please answer yes or no.";;
+			[Nn]* ) echo -e "${RED}Please try again:${RESET}";sleep 2s;;
+				* ) echo -e "${RED}Please answer yes or no.${RESET}";;
 			esac
 done
 
@@ -92,14 +92,14 @@ if [ $? -ne 0 ]
 
 	# If success
 	then
-		echo "Mounting has failed. Please try doing it manually."
+		echo -e "${RED}Mounting has failed. Please try doing it manually.${RESET}"
 		printf "\n"
 		sleep 3s
 		exit 1 # Exit with general error
 
 	# If failure
 	else
-		echo "Bucket mounted successfully."
+		echo -e "${GREEN}Bucket mounted successfully.${RESET}"
 		printf "\n"
 		sleep 3s
 	fi
@@ -111,7 +111,7 @@ while true;
 			case $yn in
 			[Yy]* ) echo "s3fs#$BUCKET $MNT fuse _netdev,allow_other,use_path_request_style,url=https://s3.$BUCKET_LOC.wasabisys.com/ 0 0" >> /etc/fstab;break;;
 			[Nn]* ) break;;
-				* ) echo "Please answer yes or no.";;
+				* ) echo -e "${RED}Please answer yes or no.${RESET}";;
 			esac
 done
 
@@ -122,7 +122,7 @@ read -s -p "Please confirm the passphrase: `echo $'\n> '`" ENCRYPT2
 # check if keys match and if not ask again
 while [ "$ENCRYPT1" != "$ENCRYPT2" ];
 	do
-		echo "Key Mismatch. Please try again."
+		echo -e "${RED}Key Mismatch. Please try again.${RESET}"
 		read -s -p "Please enter the passphrase for your backup repositories: `echo $'\n> '`" ENCRYPT1
 		read -s -p "Please confirm the passphrase: `echo $'\n> '`" ENCRYPT2
 done
@@ -155,21 +155,21 @@ if [ $? -ne 0 ]
 
 				# If success
 				then
-					echo "The '$MUTT' package was installed successfully. You will receive email updates for this backup."
+					echo -e "${GREEN}The '$MUTT' package was installed successfully. You will receive email updates for this backup.${RESET}"
 					echo "..."
 					printf "\n"
 					sleep 2s
 				# If failure
 				else
-					echo "Install of '$MUTT' package failed."
+					echo -e "${RED}Install of '$MUTT' package failed.${RESET}"
 					printf "\n"
-					echo "Please try installing it manually."
+					echo -e "${RED}Please try installing it manually.${RESET}"
 					printf "\n"
 					sleep 5s
 					exit 1 # Exit with general error
 				fi
 	else
-		echo "The '$MUTT' package is installed on your system. You will receive email updates for this backup."
+		echo -e "${GREEN}The '$MUTT' package is installed on your system. You will receive email updates for this backup.${RESET}"
 		echo "..."
 		printf "\n"
 		sleep 2s
@@ -184,8 +184,8 @@ while true
 		read -p "You entered '$MAIL' is this correct?(y/n)" yn
 			case $yn in
 			[Yy]* ) break;;
-			[Nn]* ) echo "Please try again:";sleep 2s;;
-				* ) echo "Please answer yes or no.";;
+			[Nn]* ) echo -e "${RED}Please try again:${RESET}";sleep 2s;;
+				* ) echo -e "${RED}Please answer yes or no.${RESET}";;
 			esac
 done
 
@@ -197,8 +197,8 @@ This email has to be configured on your SMTP server:`echo $'\n> '`" FROM_MAIL
 		read -p "You entered '$FROM_MAIL' is this correct?(y/n)" yn
 			case $yn in
 			[Yy]* ) break;;
-			[Nn]* ) echo "Please try again:";sleep 2s;;
-                * ) echo "Please answer yes or no.";;
+			[Nn]* ) echo -e "${RED}Please try again:${RESET}";sleep 2s;;
+                * ) echo -e "${RED}Please answer yes or no.${RESET}";;
 			esac
 done
 
@@ -209,7 +209,7 @@ read -s -p "Please confirm your SMTP password: `echo $'\n> '`" SMTP_PASS2
 # check if passwords match and if not ask again
 while [ "$SMTP_PASS1" != "$SMTP_PASS2" ];
 	do
-		echo "Password Mismatch. Please try again."
+		echo -e "${RED}Password Mismatch. Please try again.${RESET}"
 		read -s -p "Please enter the SMTP password for your server: `echo $'\n> '`" SMTP_PASS1
 		read -s -p "Please confirm your SMTP password: `echo $'\n> '`" SMTP_PASS2
 done
@@ -223,8 +223,8 @@ while true
 		read -p "You entered '$FROM_NAME' is this correct?(y/n)" yn
 			case $yn in
 			[Yy]* ) break;;
-			[Nn]* ) echo "Please try again:";sleep 2s;;
-				* ) echo "Please answer yes or no.";;
+			[Nn]* ) echo -e "${RED}Please try again:${RESET}";sleep 2s;;
+				* ) echo -e "${RED}Please answer yes or no.${RESET}";;
 			esac
 done
                 
@@ -235,8 +235,8 @@ while true
 		read -p "You entered '$SMTP_URL' is this correct?(y/n)" yn
 			case $yn in
 			[Yy]* ) break;;
-			[Nn]* ) echo "Please try again:";sleep 2s;;
-				* ) echo "Please answer yes or no.";;
+			[Nn]* ) echo -e "${RED}Please try again:${RESET}";sleep 2s;;
+				* ) echo -e "${RED}Please answer yes or no.${RESET}";;
 			esac
 done
                 
@@ -249,7 +249,7 @@ sed -i -e 's|${FROM_MAIL}|'$FROM_MAIL'|' -e "s/\${FROM_NAME}/$FROM_NAME/" -e 's|
 
 mkdir -p ~/.mutt/cache #Creates cache directory for Mutt
 
-echo "Mutt was intalled and configured successfully." 
+echo -e "${GREEN}Mutt was intalled and configured successfully.${RESET}" 
 echo "Email notifications were configured with settings indicated in the attachment." | mutt  -s "Backup Test Email" $MAIL -a ~/.muttrc  #email notification
 echo "A test email was just sent with the details you specified. Please confirm you received it.
 In case you don't receive it please check your Mutt configuration at ~/.muttrc.
@@ -286,8 +286,7 @@ for i in *
 		
 			# If one or more arguments are empty, produce an error
 			then
-				echo "One or more arguments are empty."
-				echo "A log file exists in $TEMP/backup_log_$BEGIN.txt"
+				echo -e "${RED}One or more arguments are empty.${RESET}"
 				sleep 5s
 				exit 1 # Exit with general error
 			
@@ -339,14 +338,14 @@ EOF
 
 							# If success
 							then
-								echo "Repo creation failed please try creating it manually."
+								echo -e "${RED}Repo creation failed please try creating it manually.${RESET}"
 								printf "\n"
 								sleep 3s
 								exit 1 # Exit with general error
 
 							# If failure
 							else
-								echo "Repo created successfully."
+								echo "${GREEN}Repo created successfully.${RESET}"
 								printf "\n"
 								sleep 3s
 							fi
@@ -361,12 +360,13 @@ EOF
 						echo "Please save the key or the file with it located in /etc/borg.d/keys/$i-Key.txt"
 						echo "Key for $i exported successfully" | mutt -s "Repo key for $i" $MAIL -a /etc/borg.d/keys/$i-key.txt 
 						echo "This key was also sent to you by email"
+						printf "\n"
 						read -p "Press enter to continue"
 					
 					
 					# If failure
 					else
-						echo "Repo for the container $i already exists.Resuming..."
+						echo "${GREEN}Repo for the container $i already exists.Resuming...${RESET}"
 						printf "\n"
 						sleep 3s
 					fi
@@ -499,13 +499,13 @@ EOF
 		
 									# If success
 									then
-										echo "File still exists on the local server."
-										echo "Backup has failed."
+										echo -e "${RED}File still exists on the local server.${RESET}"
+										echo -e "${RED}Backup has failed.${RESET}"
 										printf "\n"
 					
 										# Send an email explaining this failure
 										echo "An email will be sent to $MAIL"
-										echo "$FILENAME was supposed to be removed, but still exists on the local server."
+										echo -e "${RED}$FILENAME was supposed to be removed, but still exists on the local server.${RESET}"
 										echo "Failed removing snapshot file from local server." | mutt  -s "Backup Failed" $MAIL
 										echo "A log file exists in $TEMP/backup_log_$BEGIN.txt"
 										sleep 5s
@@ -522,7 +522,7 @@ send "$ENCRYPT\r"
 interact
 EOF
 ) >> /tmp/backup_$i.txt						
-										echo "Backup has finished successfully. $FILENAME has been created and backed up successfully." 
+										echo -e "${GREEN}Backup has finished successfully. $FILENAME has been created and backed up successfully.${RESET}" 
 										echo "An email will be sent to $MAIL"
 										END=$(date +'%H:%M:%S')
 										echo "Backup has finished successfully. $FILENAME has been created and backed up successfully. Backup started at $BEGIN and was completed at $END. Log and size of backup are in attachments" | mutt -s "Success: $NAME Backup" $MAIL -a $TEMP/backup_log_$BEGIN.txt -a /tmp/backup_$i.txt 
@@ -530,13 +530,13 @@ EOF
 									fi                
 						# If failure
 						else
-							echo "File does not exist on the local server."
-							echo "Backup has failed."
+							echo -e "${RED}File does not exist on the local server.${RESET}"
+							echo -e "${RED}Backup has failed.${RESET}"
 							printf "\n"
 		
 							# Send an email explaining this failure
 							echo "An email will be sent to $MAIL"
-							echo "Creating $FILENAME on local server failed." 
+							echo -e "${RED}Creating $FILENAME on local server failed.${RESET}" 
 							echo "Creating $FILENAME on local server failed." | mutt  -s "Backup Failed" $MAIL
 							echo "A log file exists in $TEMP/backup_log_$BEGIN.txt"
 							sleep 5s
@@ -554,7 +554,7 @@ while true;
 		case $yn in
 			[Yy]* ) rm $TEMP/backup_log_$BEGIN.txt;break;;
 			[Nn]* ) break;;
-				* ) echo "Please answer yes or no.";;
+				* ) echo -e "${RED}Please answer yes or no.${RESET}";;
 		esac
 done	
 
@@ -565,7 +565,7 @@ while true;
 		case $yn in
 			[Yy]* ) break;;
 			[Nn]* ) break;exit 0;;
-				* ) echo "Please answer yes or no.";;
+				* ) echo -e "${RED}Please answer yes or no.${RESET}";;
 		esac
 done	
 
@@ -595,8 +595,9 @@ mv $TEMP/backup.service /etc/systemd/system/
 systemctl enable backup.timer
 systemctl enable backup.service
 systemctl start backup.timer
-
-echo "Service created successfully. Backup will run everyday at 3am. To change this edit the file at /etc/systemd/system/backup.timer."
+printf "\n"
+printf "\n"
+echo -e "${GREEN}Service created successfully. Backup will run everyday at 3am. To change this edit the file at /etc/systemd/system/backup.timer.${RESET}"
 rm $TEMP/Wasabi_Mutt
 sleep 7s
 
