@@ -299,7 +299,7 @@ for i in *
 /usr/bin/expect <(cat << EOF                                        #Repo name same as container name
 spawn borg info $MNT/$i 
 expect "Enter passphrase for key $MNT/$i:"
-send "$'ENCRYPT'\r"
+send "$ENCRYPT\r"
 interact
 EOF
 )
@@ -350,14 +350,14 @@ EOF
 								sleep 3s
 							fi
 
-						borg key export $MNT/$i /etc/borg.d/keys/$i-Key.txt
+						borg key export $MNT/$i /etc/borg.d/keys/$i-key.txt
 						printf "\n"
 						echo "Your encryption key for this repo is:"
 						printf "\n"
 						printf "\n"
-						cat /etc/borg.d/keys/$i-Key.txt
+						cat /etc/borg.d/keys/$i-key.txt
 						printf "\n"
-						echo "Please save the key or the file with it located in /etc/borg.d/keys/$i-Key.txt"
+						echo "Please save the key or the file with it located in /etc/borg.d/keys/$i-key.txt"
 						echo "Key for $i exported successfully" | mutt -s "Repo key for $i" $MAIL -a /etc/borg.d/keys/$i-key.txt 
 						echo "This key was also sent to you by email"
 						printf "\n"
