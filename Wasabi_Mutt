@@ -345,7 +345,7 @@ EOF
 
 							# If failure
 							else
-								echo "${GREEN}Repo created successfully.${RESET}"
+								echo -e "${GREEN}Repo created successfully.${RESET}"
 								printf "\n"
 								sleep 3s
 							fi
@@ -366,7 +366,7 @@ EOF
 					
 					# If failure
 					else
-						echo "${GREEN}Repo for the container $i already exists.Resuming...${RESET}"
+						echo -e "${GREEN}Repo for the container $i already exists.Resuming...${RESET}"
 						printf "\n"
 						sleep 3s
 					fi
