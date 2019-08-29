@@ -329,6 +329,7 @@ while true
 								exit 1   # Exit with general error
 							else
 								echo -e "${GREEN}Directory found. Resuming script.${RESET}"
+								sleep 2s
 						fi;
 					break;;
 			[Nn]* ) echo "Please try again:";sleep 2s;;
