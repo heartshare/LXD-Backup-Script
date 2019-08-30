@@ -2,7 +2,7 @@
 
 BEGIN=$(date +'%d-%m_%H:%M:%S')
 
-exec > >(tee -i /var/log/backup_log_$BEGIN.txt)  #This file will log everything
+exec > >(tee -i /var/log/backup/backup_log_$BEGIN.txt)  #This file will log everything
 exec 2>&1
 
 #Cleanup backup snapshots with same name in case they exist
@@ -158,7 +158,7 @@ interact
 EOF
 ) >> /tmp/backup_$i.txt						
 												END=$(date +'%H:%M:%S')
-												echo "Backup has finished successfully. $FILENAME has been created and backed up successfully. Backup started at $BEGIN and was completed at $END. Log and size of backup are in attachments" | mutt -s "Success: $NAME Backup" ${MAIL} -a /var/log/backup_log_$BEGIN.txt -a /tmp/backup_$i.txt 
+												echo "Backup has finished successfully. $FILENAME has been created and backed up successfully. Backup started at $BEGIN and was completed at $END. Log and size of backup are in attachments" | mutt -s "Success: $NAME Backup" ${MAIL} -a /var/log/backup/backup_log_$BEGIN.txt -a /tmp/backup_$i.txt 
 												rm /tmp/backup_$i.txt
 										fi                
 									# If failure
@@ -251,7 +251,7 @@ interact
 EOF
 ) >> /tmp/backup_$i.txt						
 										END=$(date +'%H:%M:%S')
-										echo "Backup has finished successfully. $FILENAME has been created and backed up successfully. Backup started at $BEGIN and was completed at $END. Log and size of backup are in attachments" | mutt -s "Success: $NAME Backup" ${MAIL} -a /var/log/backup_log_$BEGIN.txt -a /tmp/backup_$i.txt 
+										echo "Backup has finished successfully. $FILENAME has been created and backed up successfully. Backup started at $BEGIN and was completed at $END. Log and size of backup are in attachments" | mutt -s "Success: $NAME Backup" ${MAIL} -a /var/log/backup/backup_log_$BEGIN.txt -a /tmp/backup_$i.txt 
 										rm /tmp/backup_$i.txt
 									fi                
 							# If failure
