@@ -15,6 +15,14 @@ I desperately needed something that would backup my LXD containers automatically
 - Auto Detection of Missing Containers and Notification
 - Use of S3 Storage in Wasabi as Mount for Backups
 
+### Types of Backup Storage Available
+- SSH
+- Local
+- Wasabi
+
+### Types of Notification Available
+- Email
+
 ### How to Run
 
 Download the file Install_Script, make it executable and run it as root. It will do everything on its own.
