@@ -5,7 +5,7 @@
 #Prompt to define repo location
 while true 
 	do
-		read -p "Please enter a location for the backup repository [/BACKUP]: `echo $'\n> '`" MNT
+		read -p "Please enter a location for the backup repository. The folder has to be empty. If it does not exist it will be created automatically. [/BACKUP]: `echo $'\n> '`" MNT
 		MNT=${MNT:-/BACKUP}                                                          #Used to provide default option
 		read -p "You selected '$MNT' is this correct?(y/n)" yn
 			case $yn in
