@@ -1,0 +1,513 @@
+#!/bin/bash
+
+######--Backup Preparation--######
+
+#Prompt to define repo location
+echo "${GREEN}You can define a location accessible via SSH following the format- <user@hostname/IP:/PATH/TO/REPO>${RESET}"
+while true 
+	do
+		read -p "Please enter a location for the backup repository [/BACKUP]: `echo $'\n> '`" MNT
+		MNT=${MNT:-/BACKUP}                                                          #Used to provide default option
+		read -p "You selected '$MNT' is this correct?(y/n)" yn
+			case $yn in
+			[Yy]* ) break;;
+			[Nn]* ) echo -e "${RED}Please try again:${RESET}";sleep 2s;;
+				* ) echo -e "${RED}Please answer yes or no.${RESET}";;
+			esac
+done
+
+mkdir $MNT 2>/dev/null >/dev/null
+chmod 777 $MNT	
+	
+if [ "${MNT: -1}" == "/" ]  #Checks if there is a forward slash in the path and if there is removes it
+	then 
+		MNT=${MNT%?}
+	fi				
+				
+#Prompt to define encryption key
+read -s -p "Please enter the passphrase for your backup repositories: `echo $'\n> '`" ENCRYPT1
+read -s -p "Please confirm the passphrase: `echo $'\n> '`" ENCRYPT2
+
+# check if keys match and if not ask again
+while [ "$ENCRYPT1" != "$ENCRYPT2" ];
+	do
+		echo -e "${RED}Key Mismatch. Please try again.${RESET}"
+		read -s -p "Please enter the passphrase for your backup repositories: `echo $'\n> '`" ENCRYPT1
+		read -s -p "Please confirm the passphrase: `echo $'\n> '`" ENCRYPT2
+done
+
+ENCRYPT="$ENCRYPT2"
+
+# Checking to see if the Mail package is installed on your system
+# Used for sending email confirmations of the backup process
+MUTT='mutt'     
+echo "Checking to see if '$MUTT' is installed on your system."
+printf "\n"
+sleep 2s
+
+dpkg -s $MUTT 2>/dev/null >/dev/null
+
+if [ $? -ne 0 ]
+
+	# If success
+	then
+		echo "The '$MUTT' package is not installed on your system."
+		echo "Package '$MUTT' will now be installed."
+		printf "\n"
+		sleep 2s
+		INSTALL=$
+		set -x                               #Sends output to terminal
+		(apt install $MUTT -y) 
+		{ set +x; } 2>/dev/null              #Stops output to terminal and hides set+x from output
+
+			if [ $? -eq 0 ]
+
+				# If success
+				then
+					echo -e "${GREEN}The '$MUTT' package was installed successfully. You will receive email updates for this backup.${RESET}"
+					echo "..."
+					printf "\n"
+					sleep 2s
+				# If failure
+				else
+					echo -e "${RED}Install of '$MUTT' package failed.${RESET}"
+					printf "\n"
+					echo -e "${RED}Please try installing it manually.${RESET}"
+					printf "\n"
+					sleep 5s
+					exit 1 # Exit with general error
+				fi
+	else
+		echo -e "${GREEN}The '$MUTT' package is installed on your system. You will receive email updates for this backup.${RESET}"
+		echo "..."
+		printf "\n"
+		sleep 2s
+	fi
+
+printf "\n"
+
+#Prompt to define notification email
+while true 
+	do
+		read -p "Please define email to receive backup notifications: `echo $'\n> '`" MAIL
+		read -p "You entered '$MAIL' is this correct?(y/n)" yn
+			case $yn in
+			[Yy]* ) break;;
+			[Nn]* ) echo -e "${RED}Please try again:${RESET}";sleep 2s;;
+				* ) echo -e "${RED}Please answer yes or no.${RESET}";;
+			esac
+done
+
+#Prompt to define sender email
+while true 
+	do
+		read -p "Please define email sender for backup notifications.
+This email has to be configured on your SMTP server:`echo $'\n> '`" FROM_MAIL
+		read -p "You entered '$FROM_MAIL' is this correct?(y/n)" yn
+			case $yn in
+			[Yy]* ) break;;
+			[Nn]* ) echo -e "${RED}Please try again:${RESET}";sleep 2s;;
+                * ) echo -e "${RED}Please answer yes or no.${RESET}";;
+			esac
+done
+
+#Prompt to define SMTP password
+read -s -p "Please enter the SMTP password for your server: `echo $'\n> '`" SMTP_PASS1
+read -s -p "Please confirm your SMTP password: `echo $'\n> '`" SMTP_PASS2
+
+# check if passwords match and if not ask again
+while [ "$SMTP_PASS1" != "$SMTP_PASS2" ];
+	do
+		echo -e "${RED}Password Mismatch. Please try again.${RESET}"
+		read -s -p "Please enter the SMTP password for your server: `echo $'\n> '`" SMTP_PASS1
+		read -s -p "Please confirm your SMTP password: `echo $'\n> '`" SMTP_PASS2
+done
+
+SMTP_PASS="$SMTP_PASS2"
+
+#Prompt to define sender name
+while true 
+	do
+		read -p "Please define sender name for backup notifications: `echo $'\n> '`" FROM_NAME
+		read -p "You entered '$FROM_NAME' is this correct?(y/n)" yn
+			case $yn in
+			[Yy]* ) break;;
+			[Nn]* ) echo -e "${RED}Please try again:${RESET}";sleep 2s;;
+				* ) echo -e "${RED}Please answer yes or no.${RESET}";;
+			esac
+done
+                
+#Prompt to define SMTP URL
+while true 
+	do
+		read -p "Please indicate the URL to your SMTP server in the following format (mail.domain.com:587): `echo $'\n> '`" SMTP_URL
+		read -p "You entered '$SMTP_URL' is this correct?(y/n)" yn
+			case $yn in
+			[Yy]* ) break;;
+			[Nn]* ) echo -e "${RED}Please try again:${RESET}";sleep 2s;;
+				* ) echo -e "${RED}Please answer yes or no.${RESET}";;
+			esac
+done
+                
+set -x                               #Sends output to terminal
+(wget -P $TEMP https://raw.githubusercontent.com/The-Inamati/LXD-Backup-Script/master/Mutt_Config_File)
+mv $TEMP/Mutt_Config_File ~/.muttrc
+{ set +x; } 2>/dev/null              #Stops output to terminal and hides set+x from output
+sed -i -e 's|${FROM_MAIL}|'$FROM_MAIL'|' -e "s/\${FROM_NAME}/$FROM_NAME/" -e 's|${SMTP_PASS}|'$SMTP_PASS'|' -e 's|${SMTP_URL}|'$SMTP_URL'|'  ~/.muttrc   #Substitutes variables in downloaded configuration file
+
+
+mkdir -p ~/.mutt/cache #Creates cache directory for Mutt
+
+echo -e "${GREEN}Mutt was intalled and configured successfully.${RESET}" 
+echo "Email notifications were configured with settings indicated in the attachment." | mutt  -s "Backup Test Email" $MAIL -a ~/.muttrc  #email notification
+echo "A test email was just sent with the details you specified. Please confirm you received it.
+In case you don't receive it please check your Mutt configuration at ~/.muttrc.
+The email may also be greylisted. Please try again with the command shown below after the script finishes. 
+
+<echo "Body Text" | mutt -s "Subject" email@mail.domain.com -a ~/.muttrc>"
+printf "\n"
+read -p "Press enter to continue"
+		
+echo "Continuing with backup in 5 seconds."
+echo "------------------------------------"
+sleep 5s 
+
+####--Backup--####
+
+#Create borg config file directory
+        mkdir /etc/borg.d/ 2>/dev/null >/dev/null
+		mkdir /etc/borg.d/keys 2>/dev/null >/dev/null
+		chmod 600 /etc/borg.d 2>/dev/null >/dev/null
+		chmod 600 /etc/borg.d/keys 2>/dev/null >/dev/null
+
+cd $LXD
+for i in * 
+	do
+		NAME="$i"
+		# Filename with no format (container_name.snapshot-backup)
+		FILENAME_NOFORMAT="snapshot-backup-$NAME"
+
+		# Full Filename with format (container_name.snapshot-backup.format)
+		FILENAME="$FILENAME_NOFORMAT.tar.gz"
+		
+		# Check if the required arguments are not empty
+		if [ "$i" == '' ];
+		
+			# If one or more arguments are empty, produce an error
+			then
+				echo -e "${RED}One or more arguments are empty.${RESET}"
+				sleep 5s
+				exit 1 # Exit with general error
+			
+			# If none of these arguments are empty, the script can proceed
+			else
+			 
+				#Repo Creation
+				echo "Creating Repos"
+				echo "--------------"
+/usr/bin/expect <(cat << EOF                                        #Repo name same as container name
+spawn borg info $MNT/$i 
+expect "Enter passphrase for key $MNT/$i:"
+send "$ENCRYPT\r"
+interact
+EOF
+)
+				if [ $? -ne 0 ]
+
+					# If success
+					then
+						echo "New container detected repo creation will start."
+						printf "\n"
+						sleep 3s
+/usr/bin/expect <(cat << EOF
+spawn borg init --encryption=repokey-blake2 $MNT/$i
+expect "Enter new passphrase:"
+send "$ENCRYPT\r"
+expect "Enter same passphrase again:"
+send "$ENCRYPT\r"
+expect "Do you want your passphrase to be displayed for verification?*:"
+send "n\r"
+interact
+EOF
+)
+
+						echo "Checking to see if repo was created on your system."
+						printf "\n"
+						sleep 1s
+
+/usr/bin/expect <(cat << EOF
+spawn borg info $MNT/$i 
+expect "Enter passphrase for key $MNT/$i:"
+send "$ENCRYPT\r"
+interact
+EOF
+)
+
+						if [ $? -ne 0 ]
+
+							# If success
+							then
+								echo -e "${RED}Repo creation failed please try creating it manually.${RESET}"
+								printf "\n"
+								sleep 3s
+								exit 1 # Exit with general error
+
+							# If failure
+							else
+								echo -e "${GREEN}Repo created successfully.${RESET}"
+								printf "\n"
+								sleep 3s
+							fi
+
+						borg key export $MNT/$i /etc/borg.d/keys/$i-key.txt
+						printf "\n"
+						echo "Your encryption key for this repo is:"
+						printf "\n"
+						printf "\n"
+						cat /etc/borg.d/keys/$i-key.txt
+						printf "\n"
+						echo "Please save the key or the file with it located in /etc/borg.d/keys/$i-key.txt"
+						echo "Key for $i exported successfully" | mutt -s "Repo key for $i" $MAIL -a /etc/borg.d/keys/$i-key.txt 
+						echo "This key was also sent to you by email"
+						printf "\n"
+						read -p "Press enter to continue"
+					
+					
+					# If failure
+					else
+						echo -e "${GREEN}Repo for the container $i already exists.Resuming...${RESET}"
+						printf "\n"
+						sleep 3s
+					fi
+								
+				# Clear terminal window
+				clear
+
+				# Welcome/Start message
+				echo "****************************************"
+				echo "LXD Container Backup Script"
+				echo "Created for Peace of Mind"
+				echo "****************************************"
+				
+				printf "\n"
+				
+				echo "Starting in 5 seconds."
+				echo "..."
+				printf "\n"
+				sleep 5s # Wait 5 seconds
+				
+				echo "The snapshot backup filename will be: $FILENAME"
+				echo "Stored temporarily within: $TEMP"
+				echo "Full temporary savepath: $TEMP/$FILENAME"
+				printf "\n"
+				sleep 5s # Wait 5 seconds
+		
+				# Start snapshot backup process
+				echo "Starting snapshot backup process..."
+				echo "Please be patient, this can take a while"
+		
+				# Create a snapshot of the container, with the snapshot name being 'backup'
+				echo "Creating 'backup' snapshot of '$NAME'."
+				lxc snapshot $NAME backup
+		
+				# Publish this snapshot temporarily with an alias name of 'lxd-image-backup-$NAME'
+				echo "Publishing 'backup' snapshot temporarily with an alias name of 'lxd-image-backup-$NAME'."
+				lxc publish $NAME/backup --alias lxd-image-backup-$NAME
+		
+				# Export the 'lxd-image-backup-$NAME' image, this will save the export in a 'tar.gz' format to the specified temporary location
+				echo "Exporting 'lxd-image-backup-$NAME' image in this location: '$TEMP/$FILENAME'."
+				#lxc image export lxd-image-backup-$NAME .
+				lxc image export lxd-image-backup-$NAME $TEMP/$FILENAME_NOFORMAT
+				
+				echo "Creating Repository for $i."
+				printf "\n"
+				sleep 2s
+
+/usr/bin/expect <(cat << EOF
+spawn borg create --verbose --filter AME --list --stats --show-rc --progress --compression zstd,22 $MNT/$NAME::$NAME-$BEGIN $TEMP/$FILENAME
+expect "Enter passphrase for key $MNT/$i:"
+send "$ENCRYPT\r"
+interact
+EOF
+)				
+				
+				echo "Pruning $i Repository"
+				printf "\n"
+				sleep 2s
+
+/usr/bin/expect <(cat << EOF
+spawn borg prune --list --prefix $NAME- --show-rc	--keep-daily 7 --keep-weekly 4 --keep-monthly 6 $MNT/$i
+expect "Enter passphrase for key $MNT/$i:"
+send "$ENCRYPT\r"
+interact
+EOF
+)						
+				echo "Checking Repository Consistency"
+				printf "\n"
+				sleep 2s
+
+/usr/bin/expect <(cat << EOF
+spawn borg check --repository-only $MNT/$i
+expect "Enter passphrase for key $MNT/$i:"
+send "$ENCRYPT\r"
+interact
+EOF
+)					
+				
+				
+				echo "Checking $i Archives"
+
+/usr/bin/expect <(cat << EOF
+spawn borg check --archives-only --verify-data --prefix $NAME- --last 3 $MNT/$i
+expect "Enter passphrase for key $MNT/$i:"
+send "$ENCRYPT\r"
+interact
+EOF
+)				
+				
+				
+				####--Cleanup--####
+
+				# Now delete the 'lxd-image-backup-$NAME' image
+				echo "Deleting 'lxd-image-backup-$NAME' image from server."
+				lxc image delete lxd-image-backup-$NAME
+			
+				# And delete the temporary 'backup' snapshot
+				echo "Deleting temporary 'backup' snapshot from server."
+				lxc delete local:$NAME/backup
+			
+				echo "Snapshot backup process has finished."
+				echo "..."
+				printf "\n"
+			
+			
+				# Verify snapshot file has been created
+				echo "Verifying $FILENAME file has been created."
+				printf "\n"
+		
+					if [ -f $TEMP/$FILENAME ]
+		
+						# If success
+						then
+							echo "File exists on the local server."
+							printf "\n"
+							
+							# Remove snapshot file from the local server
+							echo "Now removing $FILENAME from the local server."
+							rm $TEMP/$FILENAME
+							echo "Finished removing file."
+							echo "..."
+							printf "\n"
+				
+							# Verify snapshot file has been removed from the local server
+							echo "Verifying $FILENAME has been removed from the local server."
+							echo "..."
+							printf "\n"
+		
+								if [ -f $TEMP/$FILENAME ]
+		
+									# If success
+									then
+										echo -e "${RED}File still exists on the local server.${RESET}"
+										echo -e "${RED}Backup has failed.${RESET}"
+										printf "\n"
+					
+										# Send an email explaining this failure
+										echo "An email will be sent to $MAIL"
+										echo -e "${RED}$FILENAME was supposed to be removed, but still exists on the local server.${RESET}"
+										echo "Failed removing snapshot file from local server." | mutt  -s "Backup Failed" $MAIL
+										echo "A log file exists in $TEMP/backup_log_$BEGIN.txt"
+										sleep 5s
+										exit 1 # Exit with general error
+		
+									# If failure
+									else
+										printf "\n"
+				
+ /usr/bin/expect <(cat << EOF
+spawn borg info $MNT/$i 
+expect "Enter passphrase for key $MNT/$i:"
+send "$ENCRYPT\r"
+interact
+EOF
+) >> /tmp/backup_$i.txt						
+										echo -e "${GREEN}Backup has finished successfully. $FILENAME has been created and backed up successfully.${RESET}" 
+										echo "An email will be sent to $MAIL"
+										END=$(date +'%H:%M:%S')
+										echo "Backup has finished successfully. $FILENAME has been created and backed up successfully. Backup started at $BEGIN and was completed at $END. Log and size of backup are in attachments" | mutt -s "Success: $NAME Backup" $MAIL -a $TEMP/backup_log_$BEGIN.txt -a /tmp/backup_$i.txt 
+										rm /tmp/backup_$i.txt
+									fi                
+						# If failure
+						else
+							echo -e "${RED}File does not exist on the local server.${RESET}"
+							echo -e "${RED}Backup has failed.${RESET}"
+							printf "\n"
+		
+							# Send an email explaining this failure
+							echo "An email will be sent to $MAIL"
+							echo -e "${RED}Creating $FILENAME on local server failed.${RESET}" 
+							echo "Creating $FILENAME on local server failed." | mutt  -s "Backup Failed" $MAIL
+							echo "A log file exists in $TEMP/backup_log_$BEGIN.txt"
+							sleep 5s
+							exit 1 # Exit with general error
+
+						fi     
+			fi			
+done
+
+echo "A log file exists in $TEMP/backup_log_$BEGIN.txt"
+printf "\n"
+while true; 
+	do
+		read -p "Do you wish to delete the log file?(y/n)" yn
+		case $yn in
+			[Yy]* ) rm $TEMP/backup_log_$BEGIN.txt;break;;
+			[Nn]* ) break;;
+				* ) echo -e "${RED}Please answer yes or no.${RESET}";;
+		esac
+done	
+
+printf "\n"
+while true; 
+	do
+		read -p "Do you wish to run this backup as a service?(y/n)" yn
+		case $yn in
+			[Yy]* ) break;;
+			[Nn]* ) break;exit 0;;
+				* ) echo -e "${RED}Please answer yes or no.${RESET}";;
+		esac
+done	
+
+echo "Creating Service"
+echo "----------------"
+sleep 3s
+
+set -x                               #Sends output to terminal
+(wget -P $TEMP https://raw.githubusercontent.com/The-Inamati/LXD-Backup-Script/master/backup_local_mutt)
+mv $TEMP/backup_mutt /etc/borg.d/backup.sh
+{ set +x; } 2>/dev/null              #Stops output to terminal and hides set+x from output
+chmod +x /etc/borg.d/backup.sh
+sed -i -e 's|${MNT}|'$MNT'|' -e 's|${LXD}|'$LXD'|' -e 's|${ENCRYPT}|'$ENCRYPT'|' -e "s/\${MAIL}/$MAIL/" -e 's|${TEMP}|'$TEMP'|g' /etc/borg.d/backup.sh   #Substitutes variables in downloaded configuration file
+
+
+set -x                               #Sends output to terminal
+(wget -P $TEMP https://raw.githubusercontent.com/The-Inamati/LXD-Backup-Script/master/backup.timer)
+mv $TEMP/backup.timer /etc/systemd/system/
+{ set +x; } 2>/dev/null              #Stops output to terminal and hides set+x from output
+
+set -x                               #Sends output to terminal
+(wget -P $TEMP https://raw.githubusercontent.com/The-Inamati/LXD-Backup-Script/master/backup.service)
+mv $TEMP/backup.service /etc/systemd/system/
+{ set +x; } 2>/dev/null              #Stops output to terminal and hides set+x from output
+
+
+systemctl enable backup.timer
+systemctl enable backup.service
+systemctl start backup.timer
+printf "\n"
+printf "\n"
+echo -e "${GREEN}Service created successfully. Backup will run everyday at 3am. To change this edit the file at /etc/systemd/system/backup.timer.${RESET}"
+rm $TEMP/Wasabi_Mutt
+sleep 7s
+
+exit 0 # Successful exit
