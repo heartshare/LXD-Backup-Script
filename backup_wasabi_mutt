@@ -12,6 +12,7 @@ if [ $? -ne 0 ]
 	then
 		s3fs ${BUCKET} ${MNT} -o passwd_file=${HOME}/.passwd-s3fs -o url=https://s3.${BUCKET_LOC}.wasabisys.com	
 	fi
+#Cleanup backup snapshots with same name in case they exist
 
 cd ${LXD}
 for i in *
