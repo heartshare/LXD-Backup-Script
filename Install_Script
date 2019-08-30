@@ -360,7 +360,7 @@ while [[ $yn != y ]]
 					case $BACKUP in
 						[Local]*) echo "You selected Local";sleep 2s;break;;
 						[Wasabi]*) echo "You selected Wasabi";break;sleep 2s;;
-						[SSH]*) echo "You selected SSH"; echo -e "${RED}You will need a keyfile for this${RESET}"; sleep 5s;break;;
+						[SSH]*) echo "You selected SSH"; echo -e "${RED}You will need a private SSH key for this${RESET}"; sleep 5s;break;;
 								*) echo "Invalid Option";;
 					esac
 			done
