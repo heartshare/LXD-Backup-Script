@@ -482,8 +482,8 @@ echo "----------------"
 sleep 3s
 
 set -x                               #Sends output to terminal
-(wget -P $TEMP https://raw.githubusercontent.com/The-Inamati/LXD-Backup-Script/master/backup_wasabi_mutt)
-mv $TEMP/backup_mutt /etc/borg.d/backup.sh
+(wget -P $TEMP https://raw.githubusercontent.com/The-Inamati/LXD-Backup-Script/master/backup_local_mutt)
+mv $TEMP/backup_local_mutt /etc/borg.d/backup.sh
 { set +x; } 2>/dev/null              #Stops output to terminal and hides set+x from output
 chmod +x /etc/borg.d/backup.sh
 sed -i -e 's|${MNT}|'$MNT'|' -e 's|${LXD}|'$LXD'|' -e 's|${ENCRYPT}|'$ENCRYPT'|' -e "s/\${MAIL}/$MAIL/" -e 's|${TEMP}|'$TEMP'|g' /etc/borg.d/backup.sh   #Substitutes variables in downloaded configuration file
