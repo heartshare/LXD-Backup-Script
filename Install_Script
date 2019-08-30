@@ -354,12 +354,13 @@ while [[ $yn != y ]]
 	do
 		# Parent menu items declared here
 		PS3="Please select your backup preference: "
-			select BACKUP in Local Wasabi
+			select BACKUP in Local Wasabi SSH
 				do
 					# case statement to compare the first menu items
 					case $BACKUP in
 						[Local]*) echo "You selected Local";sleep 2s;break;;
 						[Wasabi]*) echo "You selected Wasabi";break;sleep 2s;;
+						[SSH]*) echo "You selected SSH"; echo -e "${RED}You will need a keyfile for this${RESET}"; sleep 5s;break;;
 								*) echo "Invalid Option";;
 					esac
 			done
