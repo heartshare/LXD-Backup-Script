@@ -574,6 +574,17 @@ echo "Creating Service"
 echo "----------------"
 sleep 3s
 
+#Prompt for hour of automatic backup
+while true; do
+        read -p "Please select hour for the automatic backup to run (24h format) `echo $'\n> '`" HOUR
+        case $HOUR in
+      (0[0-9] ) echo "Proceeding...";sleep 2s;break;;
+      (1[0-9] ) echo "Proceeding...";sleep 2s;break;;
+      (2[0-3] ) echo "Proceeding...";sleep 2s;break;;
+             * ) echo "Please input valid hour.";sleep 2s;;
+    esac
+done
+
 set -x                               #Sends output to terminal
 (wget -P $TEMP https://raw.githubusercontent.com/The-Inamati/LXD-Backup-Script/master/backup_wasabi_mutt)
 mv $TEMP/backup_wasabi_mutt /etc/borg.d/backup.sh
@@ -586,6 +597,8 @@ set -x                               #Sends output to terminal
 (wget -P $TEMP https://raw.githubusercontent.com/The-Inamati/LXD-Backup-Script/master/backup.timer)
 mv $TEMP/backup.timer /etc/systemd/system/
 { set +x; } 2>/dev/null              #Stops output to terminal and hides set+x from output
+sed -i -e 's|${HOUR}|'$HOUR'|' /etc/systemd/system/backup.timer
+
 
 set -x                               #Sends output to terminal
 (wget -P $TEMP https://raw.githubusercontent.com/The-Inamati/LXD-Backup-Script/master/backup.service)
@@ -598,7 +611,7 @@ systemctl enable backup.service
 systemctl start backup.timer
 printf "\n"
 printf "\n"
-echo -e "${GREEN}Service created successfully. Backup will run everyday at 3am. To change this edit the file at /etc/systemd/system/backup.timer.${RESET}"
+echo -e "${GREEN}Service created successfully. Backup will run everyday at $HOUR. To change this edit the file at /etc/systemd/system/backup.timer.${RESET}"
 rm $TEMP/Wasabi_Mutt
 sleep 7s
 
