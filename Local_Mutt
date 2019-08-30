@@ -3,7 +3,6 @@
 ######--Backup Preparation--######
 
 #Prompt to define repo location
-echo "${GREEN}You can define a location accessible via SSH following the format- <user@hostname/IP:/PATH/TO/REPO>${RESET}"
 while true 
 	do
 		read -p "Please enter a location for the backup repository [/BACKUP]: `echo $'\n> '`" MNT
@@ -483,7 +482,7 @@ echo "----------------"
 sleep 3s
 
 set -x                               #Sends output to terminal
-(wget -P $TEMP https://raw.githubusercontent.com/The-Inamati/LXD-Backup-Script/master/backup_local_mutt)
+(wget -P $TEMP https://raw.githubusercontent.com/The-Inamati/LXD-Backup-Script/master/backup_wasabi_mutt)
 mv $TEMP/backup_mutt /etc/borg.d/backup.sh
 { set +x; } 2>/dev/null              #Stops output to terminal and hides set+x from output
 chmod +x /etc/borg.d/backup.sh
@@ -507,7 +506,7 @@ systemctl start backup.timer
 printf "\n"
 printf "\n"
 echo -e "${GREEN}Service created successfully. Backup will run everyday at 3am. To change this edit the file at /etc/systemd/system/backup.timer.${RESET}"
-rm $TEMP/Wasabi_Mutt
+rm $TEMP/Local_Mutt
 sleep 7s
 
 exit 0 # Successful exit
