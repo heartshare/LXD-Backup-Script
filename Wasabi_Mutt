@@ -65,6 +65,7 @@ while true
 done
 
 mkdir $MNT 2>/dev/null >/dev/null
+mkdir /var/log/backup/
 chmod 777 $MNT	
 	
 if [ "${MNT: -1}" == "/" ]  #Checks if there is a forward slash in the path and if there is removes it
