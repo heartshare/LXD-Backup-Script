@@ -22,14 +22,9 @@ echo "Hi,
 This script was designed to make LXD backups easier to implement and mantain.
 	
 My only work was the script itself as it is just an integration of several tools developed by other people.
-			 
-To make full use of this script you will need a Wasabi account for off-site backups and in that account you will need to generate keys for access to your bucket.
-
-You will also need to know the region in which you created your bucket.
-
-A SMTP mail server or a Pushover account is also needed to send the backup notifications.
-			 
+			 	 
 Depending on your choices the following software may be installed:
+
 Mutt             Used for sending email using the 'mail' command
 Borgbackup       Used for backing up files with encryption, retention and deduplication
 Wget             Needed to get the cuswtomized borgmatic scripts
@@ -39,7 +34,7 @@ S3FS             Needed to mount S3 bucket as FS
 			 
 In addition this script will also create, move and delete the files and folders it needs to implement the backup solution.
 			 
-The script was designed to not make unnecessary changes and in theory it should not impact a production system."
+The script was designed to not make unnecessary changes and in theory should not impact a production system."
 
 while true; do
 	read -p "Taking all this into account do you wish to proceed?(y/n)" yn
