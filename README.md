@@ -21,7 +21,7 @@ I desperately needed something that would backup my LXD containers automatically
 - Wasabi
 
 ### Types of Notification Available
-- Email
+- Email (Mutt)
 
 ### How to Run
 
