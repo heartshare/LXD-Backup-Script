@@ -16,7 +16,7 @@ while true
 done
 
 mkdir $MNT 2>/dev/null >/dev/null
-mkdir /var/log/backup/
+mkdir /var/log/backup/ 2>/dev/null >/dev/null
 chmod 777 $MNT	
 	
 if [ "${MNT: -1}" == "/" ]  #Checks if there is a forward slash in the path and if there is removes it
@@ -185,7 +185,7 @@ sleep 5s
 		chmod 600 /etc/borg.d 2>/dev/null >/dev/null
 		chmod 600 /etc/borg.d/keys 2>/dev/null >/dev/null
 		
-		
+unset yn		
 #Menu for compression settings
 while [[ $yn != y ]]
 	do
