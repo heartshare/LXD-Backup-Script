@@ -17,7 +17,7 @@ for i in *
 		lxc delete local:$NAME/backup 2>/dev/null >/dev/null	
 done
 
-export BORG_PASSCOMMAND="cat $HOME/.borg-passphrase"
+export BORG_PASSCOMMAND="cat /etc/borg.d/.borg-passphrase"
 
 unset NAME
 
