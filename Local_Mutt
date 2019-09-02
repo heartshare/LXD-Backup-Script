@@ -191,21 +191,21 @@ while [[ $yn != y ]]
 	do
 		# Parent menu items declared here
 		echo "You can now select the compression you want for the backups from the following:
-		LZ4  - Super Fast, Low Compression
-		ZLIB - Less fast, Higher Compression
-		ZSTD - Slower, Higher Compression
-		LZMA - Even Slower, Even Higher Compression
+LZ4  - Super Fast, Low Compression
+ZLIB - Less fast, Higher Compression
+ZSTD - Slower, Higher Compression
+LZMA - Even Slower, Even Higher Compression
 		
-		Beware that all compression algorithms will be at their maximum compression setting."
+Beware that all compression algorithms will be at their maximum compression setting."
 		PS3="Please select your compression preference: "
 		select COMPRESSION in LZ4 ZLIB ZSTD LZMA
 			do
 				# case statement to compare the first menu items
 				case $COMPRESSION in
-					[LZ4]*) echo "You selected LZ4";sleep 2s;break;;
-					[ZLIB]*) echo "You selected ZLIB";sleep 2s;break;;
-					[ZSTD]*) echo "You selected ZSTD";sleep 2s;break;;
-					[LZMA]*) echo "You selected LZMA";sleep 2s;break;;
+					[LZ4]*)  break;;
+					[ZLIB]*) break;;
+					[ZSTD]*) break;;
+					[LZMA]*) break;;
 							*) echo "Invalid Option";;
 				esac
 		done
@@ -223,13 +223,13 @@ done
 if [[ $COMPRESSION = LZ4 ]]
 	then
 		COMPRESSION="lz4"
-elif [[ COMPRESSION = ZLIB ]]
+elif [[ $COMPRESSION = ZLIB ]]
 	then
 		COMPRESSION="zlib,9"
-elif [[ COMPRESSION = ZSTD ]]
+elif [[ $COMPRESSION = ZSTD ]]
 	then 
 		COMPRESSION="zstd,22"
-elif [[ COMPRESSION = LZMA ]]
+elif [[ $COMPRESSION = LZMA ]]
 	then
 		COMPRESSION="lzma,9"
 	fi
