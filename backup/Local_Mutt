@@ -2,59 +2,10 @@
 
 ######--Backup Preparation--######
 
-#Prompt to define wasabi access key
-while true 
-	do
-		read -p "Please enter your Wasabi Access Key: `echo $'\n> '`" ACCESS_KEY
-		read -p "You entered '$ACCESS_KEY' is this correct?(y/n)" yn
-			case $yn in
-			[Yy]* ) break;;
-			[Nn]* ) echo -e "${RED}Please try again:${RESET}";sleep 2s;;
-				* ) echo -e "${RED}Please answer yes or no.${RESET}";;
-			esac
-done
-
-#Prompt to define wasabi secret key
-while true 
-	do
-		read -p "Please enter your Wasabi Secret Key: `echo $'\n> '`" SECRET_KEY
-		read -p "You entered '$SECRET_KEY' is this correct?(y/n)" yn
-			case $yn in
-			[Yy]* ) break;;
-			[Nn]* ) echo -e "${RED}Please try again:${RESET}";sleep 2s;;
-                * ) echo -e "${RED}Please answer yes or no.${RESET}";;
-			esac
-done
-
-#Prompt to define bucket region
-while true 
-	do
-		read -p "Please enter the region selected when creating the bucket [eu-central-1]: `echo $'\n> '`" BUCKET_LOC
-		BUCKET_LOC=${BUCKET_LOC:-eu-central-1}                                                          #Used to provide default option
-		read -p "You selected '$BUCKET_LOC' is this correct?(y/n)" yn
-			case $yn in
-			[Yy]* ) break;;
-			[Nn]* ) echo -e "${RED}Please try again:${RESET}";sleep 2s;;
-                * ) echo -e "${RED}Please answer yes or no.${RESET}";;
-			esac
-done
-				
-#Prompt to define bucket name
-while true 
-	do
-		read -p "Please enter the name of the bucket you created: `echo $'\n> '`" BUCKET
-		read -p "You entered '$BUCKET' is this correct?(y/n)" yn
-			case $yn in
-			[Yy]* ) break;;
-			[Nn]* ) echo -e "${RED}Please try again:${RESET}";sleep 2s;;
-                * ) echo -e "${RED}Please answer yes or no.${RESET}";;
-			esac
-done
-
 #Prompt to define repo location
 while true 
 	do
-		read -p "Please enter a location for the backup repository. Your S3 storage will be mounted to this location. The folder has to be empty. If it does not exist it will be created automatically. [/BACKUP]: `echo $'\n> '`" MNT
+		read -p "Please enter a location for the backup repository. The folder has to be empty. If it does not exist it will be created automatically. [/BACKUP]: `echo $'\n> '`" MNT
 		MNT=${MNT:-/BACKUP}                                                          #Used to provide default option
 		read -p "You selected '$MNT' is this correct?(y/n)" yn
 			case $yn in
@@ -65,7 +16,7 @@ while true
 done
 
 mkdir $MNT 2>/dev/null >/dev/null
-mkdir /var/log/backup/
+mkdir /var/log/backup/ 2>/dev/null >/dev/null
 chmod 777 $MNT	
 	
 if [ "${MNT: -1}" == "/" ]  #Checks if there is a forward slash in the path and if there is removes it
@@ -73,49 +24,6 @@ if [ "${MNT: -1}" == "/" ]  #Checks if there is a forward slash in the path and 
 		MNT=${MNT%?}
 	fi				
 				
-echo "Installing S3FS and Fuse"
-sleep 2s
-apt install s3fs fuse -y 
-echo $ACCESS_KEY:$SECRET_KEY > ~/.passwd-s3fs
-chmod 600 ~/.passwd-s3fs
-echo "Your keys were saved in ~/.passwd-s3fs"
-
-#If unsure of what failed comment the first line and uncomment the second line to enable debug mode
-echo "Mounting Wasabi Bucket"
-s3fs $BUCKET $MNT -o passwd_file=${HOME}/.passwd-s3fs -o url=https://s3.$BUCKET_LOC.wasabisys.com
-#s3fs $BUCKET $MNT -o passwd_file=${HOME}/.passwd-s3fs -o url=https://s3.$BUCKET_LOC.wasabisys.com -o dbglevel=info -f -o rldbg
-
-echo "Verifying Mount"
-
-mount -l | grep $MNT 
-
-if [ $? -ne 0 ]
-
-	# If success
-	then
-		echo -e "${RED}Mounting has failed. Please try doing it manually.${RESET}"
-		printf "\n"
-		sleep 3s
-		exit 1 # Exit with general error
-
-	# If failure
-	else
-		echo -e "${GREEN}Bucket mounted successfully.${RESET}"
-		printf "\n"
-		sleep 3s
-	fi
-
-#Option to mount bucket at boot
-while true; 
-	do
-		read -p "Do you wish to mount the bucket at boot?(yn)" yn
-			case $yn in
-			[Yy]* ) echo "s3fs#$BUCKET $MNT fuse _netdev,allow_other,use_path_request_style,url=https://s3.$BUCKET_LOC.wasabisys.com/ 0 0" >> /etc/fstab;break;;
-			[Nn]* ) break;;
-				* ) echo -e "${RED}Please answer yes or no.${RESET}";;
-			esac
-done
-
 #Prompt to define encryption key
 read -s -p "Please enter the passphrase for your backup repositories: `echo $'\n> '`" ENCRYPT1
 read -s -p "Please confirm the passphrase: `echo $'\n> '`" ENCRYPT2
@@ -264,6 +172,7 @@ The email may also be greylisted. Please try again with the command shown below 
 <echo "Body Text" | mutt -s "Subject" email@mail.domain.com -a ~/.muttrc>"
 printf "\n"
 read -p "Press enter to continue"
+printf "\n"
 		
 echo "Continuing with backup in 5 seconds."
 echo "------------------------------------"
@@ -325,7 +234,7 @@ elif [[ $COMPRESSION = LZMA ]]
 	then
 		COMPRESSION="lzma,9"
 	fi
-
+	
 cd $LXD
 for i in * 
 	do
@@ -360,6 +269,7 @@ for i in *
 						echo "New container detected repo creation will start."
 						printf "\n"
 						sleep 3s
+
 						borg init --encryption=repokey-blake2 $MNT/$i
 
 						echo "Checking to see if repo was created on your system."
@@ -367,6 +277,7 @@ for i in *
 						sleep 1s
 
 						borg info $MNT/$i 
+
 
 						if [ $? -ne 0 ]
 
@@ -454,19 +365,18 @@ for i in *
 				printf "\n"
 				sleep 2s
 
-				borg prune --list --prefix $NAME- --show-rc	--keep-daily 7 --keep-weekly 4 --keep-monthly 6 $MNT/$i
+				borg prune --list --prefix $NAME- --show-rc --keep-daily 7 --keep-weekly 4 --keep-monthly 6 $MNT/$i
 						
 				echo "Checking Repository Consistency"
 				printf "\n"
 				sleep 2s
 
 				borg check --repository-only $MNT/$i		
-							
+						
 				echo "Checking $i Archives"
 
-				borg check --archives-only --verify-data --prefix $NAME- --last 3 $MNT/$i				
-				
-				
+				borg check --archives-only --verify-data --prefix $NAME- --last 3 $MNT/$i		
+							
 				####--Cleanup--####
 
 				# Now delete the 'lxd-image-backup-$NAME' image
@@ -588,12 +498,13 @@ while true; do
     esac
 done
 
+
 set -x                               #Sends output to terminal
-(wget -P $TEMP https://raw.githubusercontent.com/The-Inamati/LXD-Backup-Script/master/backup_wasabi_mutt)
-mv $TEMP/backup_wasabi_mutt /etc/borg.d/backup.sh
+(wget -P $TEMP https://raw.githubusercontent.com/The-Inamati/LXD-Backup-Script/master/services/backup_local_mutt)
+mv $TEMP/backup_local_mutt /etc/borg.d/backup.sh
 { set +x; } 2>/dev/null              #Stops output to terminal and hides set+x from output
 chmod +x /etc/borg.d/backup.sh
-sed -i -e 's|${MNT}|'$MNT'|' -e "s/\${BUCKET}/$BUCKET/" -e 's|${BUCKET_LOC}|'$BUCKET_LOC'|' -e 's|${LXD}|'$LXD'|' -e 's|${ENCRYPT}|'$ENCRYPT'|' -e "s/\${MAIL}/$MAIL/" -e 's|${TEMP}|'$TEMP'|g' -e 's|${COMPRESSON}|'$COMPRESSION'|' /etc/borg.d/backup.sh   #Substitutes variables in downloaded configuration file
+sed -i -e 's|${MNT}|'$MNT'|' -e 's|${LXD}|'$LXD'|' -e 's|${ENCRYPT}|'$ENCRYPT'|' -e "s/\${MAIL}/$MAIL/" -e 's|${TEMP}|'$TEMP'|g' -e 's|${COMPRESSION}|'$COMPRESSION'|' /etc/borg.d/backup.sh   #Substitutes variables in downloaded configuration file
 
 
 set -x                               #Sends output to terminal
@@ -602,11 +513,16 @@ mv $TEMP/backup.timer /etc/systemd/system/
 { set +x; } 2>/dev/null              #Stops output to terminal and hides set+x from output
 sed -i -e 's|${HOUR}|'$HOUR'|' /etc/systemd/system/backup.timer
 
-
 set -x                               #Sends output to terminal
 (wget -P $TEMP https://raw.githubusercontent.com/The-Inamati/LXD-Backup-Script/master/backup.service)
 mv $TEMP/backup.service /etc/systemd/system/
 { set +x; } 2>/dev/null              #Stops output to terminal and hides set+x from output
+
+set -x                               #Sends output to terminal
+(wget -P $TEMP https://raw.githubusercontent.com/The-Inamati/LXD-Backup-Script/master/cleanup.sh)
+mv $TEMP/cleanup.sh /etc/borg.d/
+{ set +x; } 2>/dev/null              #Stops output to terminal and hides set+x from output
+sed -i -e 's|${MNT}|'$MNT'|' /etc/borg.d/cleanup.sh
 
 
 systemctl enable backup.timer
@@ -615,7 +531,7 @@ systemctl start backup.timer
 printf "\n"
 printf "\n"
 echo -e "${GREEN}Service created successfully. Backup will run everyday at $HOUR. To change this edit the file at /etc/systemd/system/backup.timer.${RESET}"
-rm $TEMP/Wasabi_Mutt
+rm $TEMP/Local_Mutt
 sleep 7s
 
 exit 0 # Successful exit
