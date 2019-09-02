@@ -233,6 +233,7 @@ elif [[ COMPRESSION = LZMA ]]
 	then
 		COMPRESSION="lzma,9"
 	fi
+	
 echo "$COMPRESSION"
 sleep 7s
 
@@ -360,7 +361,7 @@ for i in *
 				printf "\n"
 				sleep 2s
 
-				borg create --verbose --filter AME --list --stats --show-rc --progress --compression zstd,22 $MNT/$NAME::$NAME-$BEGIN $TEMP/$FILENAME	
+				borg create --verbose --filter AME --list --stats --show-rc --progress --compression $COMPRESSION $MNT/$NAME::$NAME-$BEGIN $TEMP/$FILENAME	
 				
 				echo "Pruning $i Repository"
 				printf "\n"
@@ -505,7 +506,7 @@ set -x                               #Sends output to terminal
 mv $TEMP/backup_local_mutt /etc/borg.d/backup.sh
 { set +x; } 2>/dev/null              #Stops output to terminal and hides set+x from output
 chmod +x /etc/borg.d/backup.sh
-sed -i -e 's|${MNT}|'$MNT'|' -e 's|${LXD}|'$LXD'|' -e 's|${ENCRYPT}|'$ENCRYPT'|' -e "s/\${MAIL}/$MAIL/" -e 's|${TEMP}|'$TEMP'|g' /etc/borg.d/backup.sh   #Substitutes variables in downloaded configuration file
+sed -i -e 's|${MNT}|'$MNT'|' -e 's|${LXD}|'$LXD'|' -e 's|${ENCRYPT}|'$ENCRYPT'|' -e "s/\${MAIL}/$MAIL/" -e 's|${TEMP}|'$TEMP'|g' -e 's|${COMPRESSION}|'$COMPRESSION'|' /etc/borg.d/backup.sh   #Substitutes variables in downloaded configuration file
 
 
 set -x                               #Sends output to terminal
