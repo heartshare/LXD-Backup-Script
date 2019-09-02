@@ -38,10 +38,10 @@ done
 
 ENCRYPT="$ENCRYPT2"
 
-echo "$ENCRYPT" >> ~/.borg-passphrase
-chmod 400 ~/.borg-passphrase
+echo "$ENCRYPT" >> /etc/borg.d/.borg-passphrase
+chmod 400 /etc/borg.d/.borg-passphrase
 
-export BORG_PASSCOMMAND="cat $HOME/.borg-passphrase"
+export BORG_PASSCOMMAND="cat /etc/borg.d/.borg-passphrase"
 
 # Checking to see if the Mail package is installed on your system
 # Used for sending email confirmations of the backup process
