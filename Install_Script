@@ -345,7 +345,7 @@ cd $TEMP
 DIR=$(dirname "$0") #Used to get path where this script is being executed
 
 set -x                               #Sends output to terminal
-wget -P $DIR https://raw.githubusercontent.com/The-Inamati/LXD-Backup-Script/Secondary/${BACKUP}_${NOTIF}
+wget -P $DIR https://raw.githubusercontent.com/The-Inamati/LXD-Backup-Script/master/${BACKUP}_${NOTIF}
 { set +x; } 2>/dev/null              #Stops output to terminal and hides set+x from output
 
 source ${BACKUP}_${NOTIF}
