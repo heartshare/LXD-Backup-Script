@@ -14,6 +14,7 @@ I desperately needed something that would backup my LXD containers automatically
 - Email Notification Reports of Backups
 - Auto Detection of Missing Containers and Notification
 - Use of S3 Storage in Wasabi as Mount for Backups
+- Automatic Removal of Repositories and Archives
 
 ### Types of Backup Storage Available
 - SSH
