@@ -130,6 +130,12 @@ done
 
 ENCRYPT="$ENCRYPT2"
 
+#Create borg config file directory
+        mkdir /etc/borg.d/ 2>/dev/null >/dev/null
+		mkdir /etc/borg.d/keys 2>/dev/null >/dev/null
+		chmod 600 /etc/borg.d 2>/dev/null >/dev/null
+		chmod 600 /etc/borg.d/keys 2>/dev/null >/dev/null
+
 echo "$ENCRYPT" >> /etc/borg.d/.borg-passphrase
 chmod 400 /etc/borg.d/.borg-passphrase
 
@@ -270,12 +276,6 @@ echo "------------------------------------"
 sleep 5s 
 
 ####--Backup--####
-
-#Create borg config file directory
-        mkdir /etc/borg.d/ 2>/dev/null >/dev/null
-		mkdir /etc/borg.d/keys 2>/dev/null >/dev/null
-		chmod 600 /etc/borg.d 2>/dev/null >/dev/null
-		chmod 600 /etc/borg.d/keys 2>/dev/null >/dev/null
 		
 unset yn		
 #Menu for compression settings
