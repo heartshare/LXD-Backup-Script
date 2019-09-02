@@ -233,6 +233,8 @@ elif [[ COMPRESSION = LZMA ]]
 	then
 		COMPRESSION="lzma,9"
 	fi
+echo "$COMPRESSION"
+sleep 7s
 
 cd $LXD
 for i in * 
