@@ -130,6 +130,11 @@ done
 
 ENCRYPT="$ENCRYPT2"
 
+echo "$ENCRYPT" >> ~/.borg-passphrase
+chmod 400 ~/.borg-passphrase
+
+export BORG_PASSCOMMAND="cat $HOME/.borg-passphrase"
+
 # Checking to see if the Mail package is installed on your system
 # Used for sending email confirmations of the backup process
 MUTT='mutt'     
@@ -271,6 +276,55 @@ sleep 5s
 		mkdir /etc/borg.d/keys 2>/dev/null >/dev/null
 		chmod 600 /etc/borg.d 2>/dev/null >/dev/null
 		chmod 600 /etc/borg.d/keys 2>/dev/null >/dev/null
+		
+unset yn		
+#Menu for compression settings
+while [[ $yn != y ]]
+	do
+		# Parent menu items declared here
+		echo "You can now select the compression you want for the backups from the following:
+LZ4  - Super Fast, Low Compression
+ZLIB - Less fast, Higher Compression
+ZSTD - Slower, Higher Compression
+LZMA - Even Slower, Even Higher Compression
+		
+Beware that all compression algorithms will be at their maximum compression setting."
+		PS3="Please select your compression preference: "
+		select COMPRESSION in LZ4 ZLIB ZSTD LZMA
+			do
+				# case statement to compare the first menu items
+				case $COMPRESSION in
+					[LZ4]*)  break;;
+					[ZLIB]*) break;;
+					[ZSTD]*) break;;
+					[LZMA]*) break;;
+							*) echo "Invalid Option";;
+				esac
+		done
+		while true; 
+			do
+				read -p "You chose $COMPRESSION. Is this correct?(yn)" yn
+				case $yn in
+					[Yy]* ) break;;
+					[Nn]* ) echo "Please choose again";break;;
+						* ) echo -e "${RED}Please answer yes or no.${RESET}";;
+				esac
+		done
+done
+
+if [[ $COMPRESSION = LZ4 ]]
+	then
+		COMPRESSION="lz4"
+elif [[ $COMPRESSION = ZLIB ]]
+	then
+		COMPRESSION="zlib,9"
+elif [[ $COMPRESSION = ZSTD ]]
+	then 
+		COMPRESSION="zstd,22"
+elif [[ $COMPRESSION = LZMA ]]
+	then
+		COMPRESSION="lzma,9"
+	fi
 
 cd $LXD
 for i in * 
@@ -297,13 +351,8 @@ for i in *
 				#Repo Creation
 				echo "Creating Repos"
 				echo "--------------"
-/usr/bin/expect <(cat << EOF                                        #Repo name same as container name
-spawn borg info $MNT/$i 
-expect "Enter passphrase for key $MNT/$i:"
-send "$ENCRYPT\r"
-interact
-EOF
-)
+				borg info $MNT/$i 
+
 				if [ $? -ne 0 ]
 
 					# If success
@@ -311,29 +360,13 @@ EOF
 						echo "New container detected repo creation will start."
 						printf "\n"
 						sleep 3s
-/usr/bin/expect <(cat << EOF
-spawn borg init --encryption=repokey-blake2 $MNT/$i
-expect "Enter new passphrase:"
-send "$ENCRYPT\r"
-expect "Enter same passphrase again:"
-send "$ENCRYPT\r"
-expect "Do you want your passphrase to be displayed for verification?*:"
-send "n\r"
-interact
-EOF
-)
+						borg init --encryption=repokey-blake2 $MNT/$i
 
 						echo "Checking to see if repo was created on your system."
 						printf "\n"
 						sleep 1s
 
-/usr/bin/expect <(cat << EOF
-spawn borg info $MNT/$i 
-expect "Enter passphrase for key $MNT/$i:"
-send "$ENCRYPT\r"
-interact
-EOF
-)
+						borg info $MNT/$i 
 
 						if [ $? -ne 0 ]
 
@@ -415,47 +448,23 @@ EOF
 				printf "\n"
 				sleep 2s
 
-/usr/bin/expect <(cat << EOF
-spawn borg create --verbose --filter AME --list --stats --show-rc --progress --compression zstd,22 $MNT/$NAME::$NAME-$BEGIN $TEMP/$FILENAME
-expect "Enter passphrase for key $MNT/$i:"
-send "$ENCRYPT\r"
-interact
-EOF
-)				
+				borg create --verbose --filter AME --list --stats --show-rc --progress --compression $COMPRESSION $MNT/$NAME::$NAME-$BEGIN $TEMP/$FILENAME	
 				
 				echo "Pruning $i Repository"
 				printf "\n"
 				sleep 2s
 
-/usr/bin/expect <(cat << EOF
-spawn borg prune --list --prefix $NAME- --show-rc	--keep-daily 7 --keep-weekly 4 --keep-monthly 6 $MNT/$i
-expect "Enter passphrase for key $MNT/$i:"
-send "$ENCRYPT\r"
-interact
-EOF
-)						
+				borg prune --list --prefix $NAME- --show-rc	--keep-daily 7 --keep-weekly 4 --keep-monthly 6 $MNT/$i
+						
 				echo "Checking Repository Consistency"
 				printf "\n"
 				sleep 2s
 
-/usr/bin/expect <(cat << EOF
-spawn borg check --repository-only $MNT/$i
-expect "Enter passphrase for key $MNT/$i:"
-send "$ENCRYPT\r"
-interact
-EOF
-)					
-				
-				
+				borg check --repository-only $MNT/$i		
+							
 				echo "Checking $i Archives"
 
-/usr/bin/expect <(cat << EOF
-spawn borg check --archives-only --verify-data --prefix $NAME- --last 3 $MNT/$i
-expect "Enter passphrase for key $MNT/$i:"
-send "$ENCRYPT\r"
-interact
-EOF
-)				
+				borg check --archives-only --verify-data --prefix $NAME- --last 3 $MNT/$i				
 				
 				
 				####--Cleanup--####
@@ -516,13 +525,7 @@ EOF
 									else
 										printf "\n"
 				
- /usr/bin/expect <(cat << EOF
-spawn borg info $MNT/$i 
-expect "Enter passphrase for key $MNT/$i:"
-send "$ENCRYPT\r"
-interact
-EOF
-) >> /tmp/backup_$i.txt						
+										borg info $MNT/$i >> /tmp/backup_$i.txt						
 										echo -e "${GREEN}Backup has finished successfully. $FILENAME has been created and backed up successfully.${RESET}" 
 										echo "An email will be sent to $MAIL"
 										END=$(date +'%H:%M:%S')
@@ -590,7 +593,7 @@ set -x                               #Sends output to terminal
 mv $TEMP/backup_wasabi_mutt /etc/borg.d/backup.sh
 { set +x; } 2>/dev/null              #Stops output to terminal and hides set+x from output
 chmod +x /etc/borg.d/backup.sh
-sed -i -e 's|${MNT}|'$MNT'|' -e "s/\${BUCKET}/$BUCKET/" -e 's|${BUCKET_LOC}|'$BUCKET_LOC'|' -e 's|${LXD}|'$LXD'|' -e 's|${ENCRYPT}|'$ENCRYPT'|' -e "s/\${MAIL}/$MAIL/" -e 's|${TEMP}|'$TEMP'|g' /etc/borg.d/backup.sh   #Substitutes variables in downloaded configuration file
+sed -i -e 's|${MNT}|'$MNT'|' -e "s/\${BUCKET}/$BUCKET/" -e 's|${BUCKET_LOC}|'$BUCKET_LOC'|' -e 's|${LXD}|'$LXD'|' -e 's|${ENCRYPT}|'$ENCRYPT'|' -e "s/\${MAIL}/$MAIL/" -e 's|${TEMP}|'$TEMP'|g' -e 's|${COMPRESSON}|'$COMPRESSION'|' /etc/borg.d/backup.sh   #Substitutes variables in downloaded configuration file
 
 
 set -x                               #Sends output to terminal

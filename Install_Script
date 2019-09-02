@@ -7,7 +7,6 @@ BEGIN=$(date +'%d-%m_%H:%M:%S')
 ##   'mutt'             Used for sending email using the 'mail' command
 ##   'borgbackup'       Used for backing up files with encryption, retention and deduplication
 ##   'WGET'             Needed to get the cuswtomized borgmatic scripts
-##   'Expect'           Needed to provide interactive input throughout the script
 ##   'S3FS'             Needed to mount S3 bucket as FS
 
 RESET='\e[0m'
@@ -28,7 +27,6 @@ Depending on your choices the following software may be installed:
 Mutt             Used for sending email using the 'mail' command
 Borgbackup       Used for backing up files with encryption, retention and deduplication
 Wget             Needed to get the cuswtomized borgmatic scripts
-Expect           Needed to provide interactive input throughout the script
 S3FS             Needed to mount S3 bucket as FS
 
 			 
@@ -249,54 +247,6 @@ if [ $? -ne 0 ]
 
 printf "\n"
 
-
-# Checking to see if the Expect is installed on your system
-# Used to install expect
-EXPECT='expect'     
-echo "Checking to see if '$EXPECT' is installed on your system."
-printf "\n"
-sleep 1s
-
-dpkg -s $EXPECT 2>/dev/null >/dev/null
-
-if [ $? -ne 0 ]
-
-	# If success
-	then
-		echo "The '$EXPECT' package is not installed on your system."
-		echo "Package '$EXPECT' will now be installed."
-		printf "\n"
-		sleep 3s
-		INSTALL=$
-		set -x                               #Sends output to terminal
-		(apt install $EXPECT -y) 
-		{ set +x; } 2>/dev/null              #Stops output to terminal and hides set+x from output
-
-			if [ $? -eq 0 ]
-
-				# If success
-				then
-					echo -e "${GREEN}The '$EXPECT' package was installed successfully.${RESET}"
-					echo "..."
-					printf "\n"
-					sleep 2s
-				# If failure
-				else
-					echo -e "${RED}Install of '$EXPECT' package failed.${RESET}"
-					printf "\n"
-					echo -e "${RED}Please try installing it manually.${RESET}"
-					printf "\n"
-					exit 1 # Exit with general error
-				fi
-	else
-		echo "The '$EXPECT' package is installed on your system."
-		echo "..."
-		printf "\n"
-		sleep 2s
-	fi
-
-printf "\n"
-
 echo "*******************************"
 echo "Finished checking for packages."
 echo "*******************************"
@@ -354,7 +304,7 @@ while [[ $yn != y ]]
 					# case statement to compare the first menu items
 					case $BACKUP in
 						[Local]*) echo "You selected Local";sleep 2s;break;;
-						[Wasabi]*) echo "You selected Wasabi";break;sleep 2s;;
+						[Wasabi]*) echo "You selected Wasabi";sleep 2s;break;;
 						[SSH]*) echo "You selected SSH"; echo -e "${RED}You will need a private SSH key for this${RESET}"; sleep 5s;break;;
 								*) echo "Invalid Option";;
 					esac
@@ -395,7 +345,7 @@ cd $TEMP
 DIR=$(dirname "$0") #Used to get path where this script is being executed
 
 set -x                               #Sends output to terminal
-wget -P $DIR https://raw.githubusercontent.com/The-Inamati/LXD-Backup-Script/master/${BACKUP}_${NOTIF}
+wget -P $DIR https://raw.githubusercontent.com/The-Inamati/LXD-Backup-Script/Secondary/${BACKUP}_${NOTIF}
 { set +x; } 2>/dev/null              #Stops output to terminal and hides set+x from output
 
 source ${BACKUP}_${NOTIF}
