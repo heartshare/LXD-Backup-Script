@@ -68,7 +68,7 @@ for i in *
 								#lxc image export lxd-image-backup-$NAME .
 								lxc image export lxd-image-backup-$NAME ${TEMP}/$FILENAME_NOFORMAT
 						
-								borg create --verbose --filter AME --list --stats --show-rc --compression zstd,22 ${MNT}/$NAME::$NAME-$BEGIN ${TEMP}/$FILENAME
+								borg create --verbose --filter AME --list --stats --show-rc --compression ${COMPRESSION} ${MNT}/$NAME::$NAME-$BEGIN ${TEMP}/$FILENAME
 	
 								borg prune --list --prefix $NAME- --show-rc --keep-daily 7 --keep-weekly 4 --keep-monthly 6 ${MNT}/$i
 						
@@ -134,7 +134,7 @@ for i in *
 						#lxc image export lxd-image-backup-$NAME .
 						lxc image export lxd-image-backup-$NAME ${TEMP}/$FILENAME_NOFORMAT
 						
-						borg create --verbose --filter AME --list --stats --show-rc --compression zstd,22 ${MNT}/$NAME::$NAME-$BEGIN ${TEMP}/$FILENAME
+						borg create --verbose --filter AME --list --stats --show-rc --compression ${COMPRESSION} ${MNT}/$NAME::$NAME-$BEGIN ${TEMP}/$FILENAME
 		
 						borg prune --list --prefix $NAME- --show-rc --keep-daily 7 --keep-weekly 4 --keep-monthly 6 ${MNT}/$i
 				
