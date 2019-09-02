@@ -38,7 +38,7 @@ done
 
 ENCRYPT="$ENCRYPT2"
 
-$ENCRYPT > ~/.borg-passphrase
+echo "$ENCRYPT" > ~/.borg-passphrase
 chmod 400 ~/.borg-passphrase
 
 export BORG_PASSCOMMAND="cat $HOME/.borg-passphrase"
