@@ -172,6 +172,7 @@ The email may also be greylisted. Please try again with the command shown below 
 <echo "Body Text" | mutt -s "Subject" email@mail.domain.com -a ~/.muttrc>"
 printf "\n"
 read -p "Press enter to continue"
+printf "\n"
 		
 echo "Continuing with backup in 5 seconds."
 echo "------------------------------------"
@@ -234,9 +235,6 @@ elif [[ $COMPRESSION = LZMA ]]
 		COMPRESSION="lzma,9"
 	fi
 	
-echo "$COMPRESSION"
-sleep 7s
-
 cd $LXD
 for i in * 
 	do
