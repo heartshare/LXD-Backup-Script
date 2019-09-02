@@ -38,6 +38,11 @@ done
 
 ENCRYPT="$ENCRYPT2"
 
+$ENCRYPT > ~/.borg-passphrase
+chmod 400 ~/.borg-passphrase
+
+export BORG_PASSCOMMAND="cat $HOME/.borg-passphrase"
+
 # Checking to see if the Mail package is installed on your system
 # Used for sending email confirmations of the backup process
 MUTT='mutt'     
@@ -205,13 +210,8 @@ for i in *
 				#Repo Creation
 				echo "Creating Repos"
 				echo "--------------"
-/usr/bin/expect <(cat << EOF                                        #Repo name same as container name
-spawn borg info $MNT/$i 
-expect "Enter passphrase for key $MNT/$i:"
-send "$ENCRYPT\r"
-interact
-EOF
-)
+				borg info $MNT/$i 
+
 				if [ $? -ne 0 ]
 
 					# If success
@@ -219,29 +219,15 @@ EOF
 						echo "New container detected repo creation will start."
 						printf "\n"
 						sleep 3s
-/usr/bin/expect <(cat << EOF
-spawn borg init --encryption=repokey-blake2 $MNT/$i
-expect "Enter new passphrase:"
-send "$ENCRYPT\r"
-expect "Enter same passphrase again:"
-send "$ENCRYPT\r"
-expect "Do you want your passphrase to be displayed for verification?*:"
-send "n\r"
-interact
-EOF
-)
+
+						borg init --encryption=repokey-blake2 $MNT/$i
 
 						echo "Checking to see if repo was created on your system."
 						printf "\n"
 						sleep 1s
 
-/usr/bin/expect <(cat << EOF
-spawn borg info $MNT/$i 
-expect "Enter passphrase for key $MNT/$i:"
-send "$ENCRYPT\r"
-interact
-EOF
-)
+						borg info $MNT/$i 
+
 
 						if [ $? -ne 0 ]
 
@@ -323,49 +309,24 @@ EOF
 				printf "\n"
 				sleep 2s
 
-/usr/bin/expect <(cat << EOF
-spawn borg create --verbose --filter AME --list --stats --show-rc --progress --compression zstd,22 $MNT/$NAME::$NAME-$BEGIN $TEMP/$FILENAME
-expect "Enter passphrase for key $MNT/$i:"
-send "$ENCRYPT\r"
-interact
-EOF
-)				
+				borg create --verbose --filter AME --list --stats --show-rc --progress --compression zstd,22 $MNT/$NAME::$NAME-$BEGIN $TEMP/$FILENAME	
 				
 				echo "Pruning $i Repository"
 				printf "\n"
 				sleep 2s
 
-/usr/bin/expect <(cat << EOF
-spawn borg prune --list --prefix $NAME- --show-rc	--keep-daily 7 --keep-weekly 4 --keep-monthly 6 $MNT/$i
-expect "Enter passphrase for key $MNT/$i:"
-send "$ENCRYPT\r"
-interact
-EOF
-)						
+				borg prune --list --prefix $NAME- --show-rc --keep-daily 7 --keep-weekly 4 --keep-monthly 6 $MNT/$i
+						
 				echo "Checking Repository Consistency"
 				printf "\n"
 				sleep 2s
 
-/usr/bin/expect <(cat << EOF
-spawn borg check --repository-only $MNT/$i
-expect "Enter passphrase for key $MNT/$i:"
-send "$ENCRYPT\r"
-interact
-EOF
-)					
-				
-				
+				borg check --repository-only $MNT/$i		
+						
 				echo "Checking $i Archives"
 
-/usr/bin/expect <(cat << EOF
-spawn borg check --archives-only --verify-data --prefix $NAME- --last 3 $MNT/$i
-expect "Enter passphrase for key $MNT/$i:"
-send "$ENCRYPT\r"
-interact
-EOF
-)				
-				
-				
+				borg check --archives-only --verify-data --prefix $NAME- --last 3 $MNT/$i		
+							
 				####--Cleanup--####
 
 				# Now delete the 'lxd-image-backup-$NAME' image
@@ -424,13 +385,7 @@ EOF
 									else
 										printf "\n"
 				
- /usr/bin/expect <(cat << EOF
-spawn borg info $MNT/$i 
-expect "Enter passphrase for key $MNT/$i:"
-send "$ENCRYPT\r"
-interact
-EOF
-) >> /tmp/backup_$i.txt						
+										borg info $MNT/$i >> /tmp/backup_$i.txt						
 										echo -e "${GREEN}Backup has finished successfully. $FILENAME has been created and backed up successfully.${RESET}" 
 										echo "An email will be sent to $MAIL"
 										END=$(date +'%H:%M:%S')
@@ -495,7 +450,7 @@ done
 
 
 set -x                               #Sends output to terminal
-(wget -P $TEMP https://raw.githubusercontent.com/The-Inamati/LXD-Backup-Script/master/backup_local_mutt)
+(wget -P $TEMP https://raw.githubusercontent.com/The-Inamati/LXD-Backup-Script/Secondary/backup_local_mutt)
 mv $TEMP/backup_local_mutt /etc/borg.d/backup.sh
 { set +x; } 2>/dev/null              #Stops output to terminal and hides set+x from output
 chmod +x /etc/borg.d/backup.sh
@@ -503,13 +458,13 @@ sed -i -e 's|${MNT}|'$MNT'|' -e 's|${LXD}|'$LXD'|' -e 's|${ENCRYPT}|'$ENCRYPT'|'
 
 
 set -x                               #Sends output to terminal
-(wget -P $TEMP https://raw.githubusercontent.com/The-Inamati/LXD-Backup-Script/master/backup.timer)
+(wget -P $TEMP https://raw.githubusercontent.com/The-Inamati/LXD-Backup-Script/Secondary/backup.timer)
 mv $TEMP/backup.timer /etc/systemd/system/
 { set +x; } 2>/dev/null              #Stops output to terminal and hides set+x from output
 sed -i -e 's|${HOUR}|'$HOUR'|' /etc/systemd/system/backup.timer
 
 set -x                               #Sends output to terminal
-(wget -P $TEMP https://raw.githubusercontent.com/The-Inamati/LXD-Backup-Script/master/backup.service)
+(wget -P $TEMP https://raw.githubusercontent.com/The-Inamati/LXD-Backup-Script/Secondary/backup.service)
 mv $TEMP/backup.service /etc/systemd/system/
 { set +x; } 2>/dev/null              #Stops output to terminal and hides set+x from output
 
