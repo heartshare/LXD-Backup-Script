@@ -6,9 +6,6 @@ exec > >(tee -i /var/log/backup/backup_log_$BEGIN.txt)  #This file will log ever
 exec 2>&1
 
 #Cleanup backup snapshots with same name in case they exist
-
-export BORG_PASSCOMMAND="cat $HOME/.borg-passphrase"
-
 cd ${LXD}
 for i in *
 	do
@@ -19,6 +16,8 @@ for i in *
 		# And delete the temporary 'backup' snapshot
 		lxc delete local:$NAME/backup 2>/dev/null >/dev/null	
 done
+
+export BORG_PASSCOMMAND="cat $HOME/.borg-passphrase"
 
 unset NAME
 
@@ -106,7 +105,6 @@ for i in *
 										
 											# If failure
 											else
-				
 												borg info ${MNT}/$i >> /tmp/backup_$i.txt						
 												END=$(date +'%H:%M:%S')
 												echo "Backup has finished successfully. $FILENAME has been created and backed up successfully. Backup started at $BEGIN and was completed at $END. Log and size of backup are in attachments" | mutt -s "Success: $NAME Backup" ${MAIL} -a /var/log/backup/backup_log_$BEGIN.txt -a /tmp/backup_$i.txt 
@@ -170,7 +168,6 @@ for i in *
 												
 									# If failure
 									else
-				
 										borg info ${MNT}/$i >> /tmp/backup_$i.txt						
 										END=$(date +'%H:%M:%S')
 										echo "Backup has finished successfully. $FILENAME has been created and backed up successfully. Backup started at $BEGIN and was completed at $END. Log and size of backup are in attachments" | mutt -s "Success: $NAME Backup" ${MAIL} -a /var/log/backup/backup_log_$BEGIN.txt -a /tmp/backup_$i.txt 
