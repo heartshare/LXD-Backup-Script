@@ -590,28 +590,29 @@ done
 
 set -x                               #Sends output to terminal
 (wget -P $TEMP https://raw.githubusercontent.com/The-Inamati/LXD-Backup-Script/master/services/backup_wasabi_mutt)
-mv $TEMP/backup_wasabi_mutt /etc/borg.d/backup.sh
 { set +x; } 2>/dev/null              #Stops output to terminal and hides set+x from output
+mv $TEMP/backup_wasabi_mutt /etc/borg.d/backup.sh
 chmod +x /etc/borg.d/backup.sh
 sed -i -e 's|${MNT}|'$MNT'|' -e "s/\${BUCKET}/$BUCKET/" -e 's|${BUCKET_LOC}|'$BUCKET_LOC'|' -e 's|${LXD}|'$LXD'|' -e 's|${ENCRYPT}|'$ENCRYPT'|' -e "s/\${MAIL}/$MAIL/" -e 's|${TEMP}|'$TEMP'|g' -e 's|${COMPRESSION}|'$COMPRESSION'|' /etc/borg.d/backup.sh   #Substitutes variables in downloaded configuration file
 
 
 set -x                               #Sends output to terminal
 (wget -P $TEMP https://raw.githubusercontent.com/The-Inamati/LXD-Backup-Script/master/backup.timer)
-mv $TEMP/backup.timer /etc/systemd/system/
 { set +x; } 2>/dev/null              #Stops output to terminal and hides set+x from output
+mv $TEMP/backup.timer /etc/systemd/system/
 sed -i -e 's|${HOUR}|'$HOUR'|' /etc/systemd/system/backup.timer
 
 
 set -x                               #Sends output to terminal
 (wget -P $TEMP https://raw.githubusercontent.com/The-Inamati/LXD-Backup-Script/master/backup.service)
-mv $TEMP/backup.service /etc/systemd/system/
 { set +x; } 2>/dev/null              #Stops output to terminal and hides set+x from output
+mv $TEMP/backup.service /etc/systemd/system/
+
 
 set -x                               #Sends output to terminal
 (wget -P $TEMP https://raw.githubusercontent.com/The-Inamati/LXD-Backup-Script/master/cleanup.sh)
-mv $TEMP/cleanup.sh /etc/borg.d/
 { set +x; } 2>/dev/null              #Stops output to terminal and hides set+x from output
+mv $TEMP/cleanup.sh /etc/borg.d/
 sed -i -e 's|${MNT}|'$MNT'|' /etc/borg.d/cleanup.sh
 chmod +x /etc/borg.d/cleanup.sh
 
