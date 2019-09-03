@@ -30,8 +30,6 @@ Download the file Install_Script, make it executable and run it as root. It will
 
 ### Notes
 
-This script generates a new backup everyday at 3am. If you want to change this you can edit the file at /etc/systemd/system/backup.timer.
-
 The script that is run as a service is located at /etc/borg.d/.
 
 A log file is saved everytime it runs at /var/log/.
