@@ -593,7 +593,7 @@ set -x                               #Sends output to terminal
 mv $TEMP/backup_wasabi_mutt /etc/borg.d/backup.sh
 { set +x; } 2>/dev/null              #Stops output to terminal and hides set+x from output
 chmod +x /etc/borg.d/backup.sh
-sed -i -e 's|${MNT}|'$MNT'|' -e "s/\${BUCKET}/$BUCKET/" -e 's|${BUCKET_LOC}|'$BUCKET_LOC'|' -e 's|${LXD}|'$LXD'|' -e 's|${ENCRYPT}|'$ENCRYPT'|' -e "s/\${MAIL}/$MAIL/" -e 's|${TEMP}|'$TEMP'|g' -e 's|${COMPRESSON}|'$COMPRESSION'|' /etc/borg.d/backup.sh   #Substitutes variables in downloaded configuration file
+sed -i -e 's|${MNT}|'$MNT'|' -e "s/\${BUCKET}/$BUCKET/" -e 's|${BUCKET_LOC}|'$BUCKET_LOC'|' -e 's|${LXD}|'$LXD'|' -e 's|${ENCRYPT}|'$ENCRYPT'|' -e "s/\${MAIL}/$MAIL/" -e 's|${TEMP}|'$TEMP'|g' -e 's|${COMPRESSION}|'$COMPRESSION'|' /etc/borg.d/backup.sh   #Substitutes variables in downloaded configuration file
 
 
 set -x                               #Sends output to terminal
