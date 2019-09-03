@@ -14,7 +14,7 @@ I desperately needed something that would backup my LXD containers automatically
 - Email Notification Reports of Backups
 - Auto Detection of Missing Containers and Notification
 - Use of S3 Storage in Wasabi as Mount for Backups
-- Automatic Removal of Repositories and Archives
+- Automatic Removal of Repositories, Archives and Everything Script Related
 
 ### Types of Backup Storage Available
 - SSH
@@ -60,6 +60,7 @@ Or you can use your Gmail SMTP details.
 - XMPP Support
 - Possibly Gotify Support also
 - Automatic LXD Restore Script
+- Modify/Migration Script
 - Script Optimization (As I learn more about bash scripting)
 - Plus whatever you tell me that makes sense.
 
