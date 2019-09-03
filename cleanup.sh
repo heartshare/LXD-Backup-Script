@@ -71,7 +71,7 @@ if [[ $WHAT = Repository ]]
 				
 elif [[ $WHAT = Archive ]]
 	then
-		readarray -t REPOS << (ls ${MNT})
+		readarray -t REPOS < <(ls ${MNT})
 		# Prompt the user to select one of the lines.
 	    while [[ $yn != y ]]
 			do
@@ -89,7 +89,7 @@ elif [[ $WHAT = Archive ]]
 						esac
 		done
 						
-		readarray -t ARCHIVES <<(borg list ${MNT}/$REMOVE)
+		readarray -t ARCHIVES < <(borg list ${MNT}/$REMOVE)
 		 while [[ $yn != y ]]
 			do
 				echo "Please select the archive you wish to delete:"
