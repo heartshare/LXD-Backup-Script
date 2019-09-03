@@ -181,10 +181,10 @@ elif [[ "$WHAT" == Everything ]]
 		echo -e "${GREEN}All Repositories have been removed.${RESET}"
 		sleep 3s
 		rm ~/.muttrc
-		rm /var/log/backup*
-		rm /systemd/system/backup*
+		rm -rf /var/log/backup
+		rm /etc/systemd/system/backup*
 		rm -rf /etc/borg.d
-		rm ~/.passwd-s3fs
+		rm ~/.passwd-s3fs 2>/dev/null >/dev/null
 		
 		while true 
 			do
