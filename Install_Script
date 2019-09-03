@@ -178,7 +178,6 @@ if [ $? -ne 0 ]
 				# If success
 				then
 					echo -e "${GREEN}The '$BORG' package was installed successfully.${RESET}"
-					echo "..."
 					printf "\n"
 					sleep 2s
 				# If failure
@@ -192,7 +191,6 @@ if [ $? -ne 0 ]
 				fi
 	else
 		echo "The '$BORG' package is installed on your system."
-		echo "..."
 		printf "\n"
 		sleep 2s
 	fi
@@ -226,7 +224,6 @@ if [ $? -ne 0 ]
 				# If success
 				then
 					echo -e "${GREEN}The '$WGET' package was installed successfully.${RESET}"
-					echo "..."
 					printf "\n"
 					sleep 2s
 				# If failure
@@ -240,7 +237,6 @@ if [ $? -ne 0 ]
 
 	else
 		echo "The '$WGET' package is installed on your system."
-		echo "..."
 		printf "\n"
 		sleep 2s
 	fi
