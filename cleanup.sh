@@ -1,9 +1,5 @@
 #!/bin/bash
 
-# Read command output line by line into array ${lines [@]}
-# Bash 3.x: use the following instead:
-#   IFS=$'\n' read -d '' -ra lines < <(lsblk --nodeps -no name,serial,size | grep "sd")
-
 clear
 
 echo "Cleanup Script"
