@@ -40,14 +40,14 @@ while [[ $yn != y ]]
 			done
 done
 
-
+unset yn
 # Parent menu items declared here
-if [[ $WHAT = Repository ]]
+if [[ "$WHAT" == Repository ]]
 	then 
+		readarray -t REPOS < <(ls ${MNT})
 		# Prompt the user to select one of the lines.
 		while [[ $yn != y ]]
 			do
-				readarray -t REPOS < <(ls ${MNT})
 				echo "Please select a repository to delete:"
 				select REMOVE in "${REPOS[@]}"
 					do
@@ -69,12 +69,12 @@ if [[ $WHAT = Repository ]]
 				sleep 5s
 				exit 0
 				
-elif [[ $WHAT = Archive ]]
+elif [[ "$WHAT" == Archive ]]
 	then
+		readarray -t REPOS < <(ls ${MNT})
 		# Prompt the user to select one of the lines.
 	    while [[ $yn != y ]]
 			do
-				readarray -t REPOS < <(ls ${MNT})
 				echo "Please select the repository of the archive you wish to delete:"
 				select REMOVE in "${REPOS[@]}"
 					do
@@ -88,11 +88,10 @@ elif [[ $WHAT = Archive ]]
 								* ) echo "Please answer yes or no.";sleep 2s;;
 						esac
 		done
-						
-		
-		 while [[ $yn != y ]]
+		unset yn				
+		readarray -t ARCHIVES < <(borg list ${MNT}/$REMOVE)
+		while [[ $yn != y ]]
 			do
-				readarray -t ARCHIVES < <(borg list ${MNT}/$REMOVE)
 				echo "Please select the archive you wish to delete:"
 				select ARCHIVE in "${ARCHIVES[@]}"
 					do
@@ -111,7 +110,7 @@ elif [[ $WHAT = Archive ]]
 				sleep 5s
 				exit 0
 				
-elif [[ $WHAT = EveryRepo ]] 
+elif [[ "$WHAT" == EveryRepo ]] 
 	then
 		echo "-----------------------------------------------------------"
 		echo "WARNING: This will remove all your backups and repositories"
@@ -137,7 +136,7 @@ elif [[ $WHAT = EveryRepo ]]
 		sleep 5s
 		exit 0
 
-elif [[ $WHAT = Everything ]]
+elif [[ "$WHAT" == Everything ]]
 	then
 		echo "------------------------------------------------------------------------------------------"
 		echo "WARNING: This will remove all backups, repositories and everything related to this script."
