@@ -12,7 +12,9 @@ sleep 3s
 
 export BORG_PASSCOMMAND="cat /etc/borg.d/.borg-passphrase"
 
-
+RESET='\e[0m'
+RED='\e[31m'
+GREEN='\e[32m'
 
 while [[ $yn != y ]]
 	do
@@ -25,7 +27,7 @@ while [[ $yn != y ]]
 					[Repository]*) sleep 2s;break;;
 					[EveryRepo]*) sleep 2s;break;;
 					[Everything]*) sleep 2s;break;;
-								*) echo "Invalid Option";;
+								*) echo -e "${RED}Invalid Option${RESET}";;
 				esac
 		done
 		while true
@@ -34,8 +36,8 @@ while [[ $yn != y ]]
 				read -p "Are you sure? (y/n)" yn
 					case $yn in
 						[Yy]* ) break;;
-						[Nn]* ) echo "Please choose again.";sleep 2s;break;;
-							* ) echo "Please answer yes or no.";;
+						[Nn]* ) echo -e "${RED}Please choose again.${RESET}";sleep 2s;break;;
+							* ) echo -e "${RED}Please answer yes or no.${RESET}";;
 					esac
 			done
 done
@@ -45,13 +47,19 @@ unset yn
 if [[ "$WHAT" == Repository ]]
 	then 
 		readarray -t REPOS < <(ls ${MNT})
+		if [ -z "$REPOS" ]
+			then
+				echo -e "${RED}No repositories found${RESET}"
+				sleep 3s
+				exit 0
+		fi
 		# Prompt the user to select one of the lines.
 		while [[ $yn != y ]]
 			do
 				echo "Please select a repository to delete:"
 				select REMOVE in "${REPOS[@]}"
 					do
-						[[ -n $REMOVE ]] || { echo "Invalid choice. Please try again." >&2; continue; }
+						[[ -n $REMOVE ]] || { echo -e "${RED}Invalid choice. Please try again.${RESET}" >&2; continue; }
 						break # valid choice was made; exit prompt.
 				done
 				while true 
@@ -60,61 +68,74 @@ if [[ "$WHAT" == Repository ]]
 						case $yn in
 							[Yy]* ) break;;
 							[Nn]* ) break;;
-								* ) echo "Please answer yes or no.";;
+								* ) echo -e "${RED}Please answer yes or no.${RESET}";;
 						esac
 				done
 			done
 				borg delete ${MNT}/$REMOVE
-				echo "The repository was removed successfully."
+				echo -e "${GREEN}The repository was removed successfully.${RESET}"
 				sleep 5s
 				exit 0
 				
 elif [[ "$WHAT" == Archive ]]
 	then
 		readarray -t REPOS < <(ls ${MNT})
+		if [ -z "$REPOS" ]
+			then
+				echo -e "${RED}No repositories found${RESET}"
+				sleep 3s
+				exit 0
+		fi
 		# Prompt the user to select one of the lines.
 	    while [[ $yn != y ]]
 			do
 				echo "Please select the repository of the archive you wish to delete:"
 				select REMOVE in "${REPOS[@]}"
 					do
-						[[ -n $REMOVE ]] || { echo "Invalid choice. Please try again." >&2; continue; }
+						[[ -n $REMOVE ]] || { echo -e "${RED}Invalid choice. Please try again.${RESET}" >&2; continue; }
 						break # valid choice was made; exit prompt.
 				done
 				read -p "You selected the repository $REMOVE. Are you sure?(y/n)" yn
 						case $yn in
 							[Yy]* ) break;;
-							[Nn]* ) echo "Please choose again";sleep 2s;;
-								* ) echo "Please answer yes or no.";sleep 2s;;
+							[Nn]* ) echo -e "${RED}Please choose again${RESET}";sleep 2s;;
+								* ) echo -e "${RED}Please answer yes or no.${RESET}";sleep 2s;;
 						esac
 		done
 		unset yn				
 		readarray -t ARCHIVES < <(borg list ${MNT}/$REMOVE)
+		if [ -z "$ARCHIVES" ]
+			then
+				echo -e "${RED}No archives found on the repository $REMOVE${RESET}"
+				sleep 3s
+				exit 0
+		fi
 		while [[ $yn != y ]]
 			do
 				echo "Please select the archive you wish to delete:"
 				select ARCHIVE in "${ARCHIVES[@]}"
 					do
-						[[ -n $ARCHIVE ]] || { echo "Invalid choice. Please try again." >&2; continue; }
+						[[ -n $ARCHIVE ]] || { echo -e "${RED}Invalid choice. Please try again.${RESET}" >&2; continue; }
 						break # valid choice was made; exit prompt.
 				done
 				read -p "You selected the archive $ARCHIVE. Are you sure?(y/n)" yn
 						case $yn in
 							[Yy]* ) break;;
-							[Nn]* ) echo "Please choose again";sleep 2s;;
-								* ) echo "Please answer yes or no.";sleep 2s;;
+							[Nn]* ) echo -e "${RED}Please choose again${RESET}";sleep 2s;;
+								* ) echo -e "${RED}Please answer yes or no.${RESET}";sleep 2s;;
 						esac
 			done
+				ARCHIVE=$(echo $ARCHIVE | cut -d' ' -f1)
 				borg delete ${MNT}/$REMOVE::$ARCHIVE
-				echo "The archive was removed successfully."
+				echo -e "${GREEN}The archive was removed successfully.${RESET}"
 				sleep 5s
 				exit 0
 				
 elif [[ "$WHAT" == EveryRepo ]] 
 	then
-		echo "-----------------------------------------------------------"
-		echo "WARNING: This will remove all your backups and repositories"
-		echo "-----------------------------------------------------------"
+		echo -e "${RED}-----------------------------------------------------------${RESET}"
+		echo -e "${RED}WARNING: This will remove all your backups and repositories${RESET}"
+		echo -e "${RED}-----------------------------------------------------------${RESET}"
 		printf "\n"
 		printf "\n"
 		while [[ $yn != y ]]
@@ -122,8 +143,8 @@ elif [[ "$WHAT" == EveryRepo ]]
 				read -p "Do you wish to continue? (y/n)" yn
 				case $yn in
 					[Yy]* ) break;;
-					[Nn]* ) echo "Terminating Script.";sleep 2s;exit 1;;
-						* ) echo "Please answer yes or no.";;
+					[Nn]* ) echo -e "${RED}Terminating Script.${RESET}";sleep 2s;exit 1;;
+						* ) echo -e "${RED}Please answer yes or no.${RESET}";;
 				esac
 			done
 		
@@ -132,15 +153,15 @@ elif [[ "$WHAT" == EveryRepo ]]
 			do
 				borg delete ${MNT}/$i
 		done
-		echo "All Repositories have been removed."
+		echo -e "${GREEN}All Repositories have been removed.${RESET}"
 		sleep 5s
 		exit 0
 
 elif [[ "$WHAT" == Everything ]]
 	then
-		echo "------------------------------------------------------------------------------------------"
-		echo "WARNING: This will remove all backups, repositories and everything related to this script."
-		echo "------------------------------------------------------------------------------------------"
+		echo -e "${RED}------------------------------------------------------------------------------------------${RESET}"
+		echo -e "${RED}WARNING: This will remove all backups, repositories and everything related to this script.${RESET}"
+		echo -e "${RED}------------------------------------------------------------------------------------------${RESET}"
 		printf "\n"
 		printf "\n"
 		while [[ $yn != y ]]
@@ -148,8 +169,8 @@ elif [[ "$WHAT" == Everything ]]
 				read -p "Do you wish to continue? (y/n)" yn
 				case $yn in
 					[Yy]* ) break;;
-					[Nn]* ) echo "Terminating Script.";sleep 2s;exit 1;;
-						* ) echo "Please answer yes or no.";;
+					[Nn]* ) echo -e "${RED}Terminating Script.${RESET}";sleep 2s;exit 1;;
+						* ) echo -e "${RED}Please answer yes or no.${RESET}";;
 				esac
 			done
 		cd ${MNT}
@@ -157,11 +178,12 @@ elif [[ "$WHAT" == Everything ]]
 			do
 				borg delete ${MNT}/$i
 		done
-		echo "All Repositories have been removed."
+		echo -e "${GREEN}All Repositories have been removed.${RESET}"
 		sleep 3s
 		rm ~/.muttrc
 		rm /var/log/backup*
 		rm /systemd/system/backup*
 		rm -rf /etc/borg.d
-		echo "Everything was removed successfully."
+		echo -e "${GREEN}Everything was removed successfully.${RESET}"
+		sleep 4s
 fi
