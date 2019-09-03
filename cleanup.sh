@@ -44,10 +44,10 @@ done
 # Parent menu items declared here
 if [[ $WHAT = Repository ]]
 	then 
-		readarray -t REPOS < <(ls ${MNT})
 		# Prompt the user to select one of the lines.
 		while [[ $yn != y ]]
 			do
+				readarray -t REPOS < <(ls ${MNT})
 				echo "Please select a repository to delete:"
 				select REMOVE in "${REPOS[@]}"
 					do
@@ -71,10 +71,10 @@ if [[ $WHAT = Repository ]]
 				
 elif [[ $WHAT = Archive ]]
 	then
-		readarray -t REPOS < <(ls ${MNT})
 		# Prompt the user to select one of the lines.
 	    while [[ $yn != y ]]
 			do
+				readarray -t REPOS < <(ls ${MNT})
 				echo "Please select the repository of the archive you wish to delete:"
 				select REMOVE in "${REPOS[@]}"
 					do
@@ -89,9 +89,10 @@ elif [[ $WHAT = Archive ]]
 						esac
 		done
 						
-		readarray -t ARCHIVES < <(borg list ${MNT}/$REMOVE)
+		
 		 while [[ $yn != y ]]
 			do
+				readarray -t ARCHIVES < <(borg list ${MNT}/$REMOVE)
 				echo "Please select the archive you wish to delete:"
 				select ARCHIVE in "${ARCHIVES[@]}"
 					do
