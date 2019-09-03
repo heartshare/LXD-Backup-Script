@@ -21,10 +21,10 @@ while [[ $yn != y ]]
 			do
 				# case statement to compare the first menu items
 				case $WHAT in
-					[Archive]*) echo "You selected Archive";sleep 2s;break;;
-					[Repository]*) echo "You selected Repository";sleep 2s;break;;
-					[EveryRepo]*) echo "You selected EveryRepo";sleep 2s;break;;
-					[Everything]*) echo "You selected Everything";sleep 2s;break;;
+					[Archive]*) sleep 2s;break;;
+					[Repository]*) sleep 2s;break;;
+					[EveryRepo]*) sleep 2s;break;;
+					[Everything]*) sleep 2s;break;;
 								*) echo "Invalid Option";;
 				esac
 		done
@@ -42,8 +42,6 @@ done
 
 
 # Parent menu items declared here
-
-
 if [[ $WHAT = Repository ]]
 	then 
 		readarray -t REPOS < <(ls ${MNT})
@@ -73,7 +71,7 @@ if [[ $WHAT = Repository ]]
 				
 elif [[ $WHAT = Archive ]]
 	then
-		readarray -t REPOS < <(ls ${MNT})
+		readarray -t REPOS << (ls ${MNT})
 		# Prompt the user to select one of the lines.
 	    while [[ $yn != y ]]
 			do
@@ -86,12 +84,12 @@ elif [[ $WHAT = Archive ]]
 				read -p "You selected the repository $REMOVE. Are you sure?(y/n)" yn
 						case $yn in
 							[Yy]* ) break;;
-							[Nn]* ) break;;
-								* ) echo "Please answer yes or no.";;
+							[Nn]* ) echo "Please choose again";sleep 2s;;
+								* ) echo "Please answer yes or no.";sleep 2s;;
 						esac
 		done
 						
-		readarray -t ARCHIVES < <(borg list ${MNT}/$REMOVE)
+		readarray -t ARCHIVES <<(borg list ${MNT}/$REMOVE)
 		 while [[ $yn != y ]]
 			do
 				echo "Please select the archive you wish to delete:"
@@ -103,8 +101,8 @@ elif [[ $WHAT = Archive ]]
 				read -p "You selected the archive $ARCHIVE. Are you sure?(y/n)" yn
 						case $yn in
 							[Yy]* ) break;;
-							[Nn]* ) break;;
-								* ) echo "Please answer yes or no.";;
+							[Nn]* ) echo "Please choose again";sleep 2s;;
+								* ) echo "Please answer yes or no.";sleep 2s;;
 						esac
 			done
 				borg delete ${MNT}/$REMOVE::$ARCHIVE
