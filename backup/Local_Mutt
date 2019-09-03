@@ -38,6 +38,12 @@ done
 
 ENCRYPT="$ENCRYPT2"
 
+#Create borg config file directory
+        mkdir /etc/borg.d/ 2>/dev/null >/dev/null
+		mkdir /etc/borg.d/keys 2>/dev/null >/dev/null
+		chmod 600 /etc/borg.d 2>/dev/null >/dev/null
+		chmod 600 /etc/borg.d/keys 2>/dev/null >/dev/null
+
 echo "$ENCRYPT" >> /etc/borg.d/.borg-passphrase
 chmod 400 /etc/borg.d/.borg-passphrase
 
@@ -180,12 +186,6 @@ sleep 5s
 
 ####--Backup--####
 
-#Create borg config file directory
-        mkdir /etc/borg.d/ 2>/dev/null >/dev/null
-		mkdir /etc/borg.d/keys 2>/dev/null >/dev/null
-		chmod 600 /etc/borg.d 2>/dev/null >/dev/null
-		chmod 600 /etc/borg.d/keys 2>/dev/null >/dev/null
-		
 unset yn		
 #Menu for compression settings
 while [[ $yn != y ]]
@@ -501,29 +501,31 @@ done
 
 set -x                               #Sends output to terminal
 (wget -P $TEMP https://raw.githubusercontent.com/The-Inamati/LXD-Backup-Script/master/services/backup_local_mutt)
-mv $TEMP/backup_local_mutt /etc/borg.d/backup.sh
 { set +x; } 2>/dev/null              #Stops output to terminal and hides set+x from output
+mv $TEMP/backup_local_mutt /etc/borg.d/backup.sh
 chmod +x /etc/borg.d/backup.sh
 sed -i -e 's|${MNT}|'$MNT'|' -e 's|${LXD}|'$LXD'|' -e 's|${ENCRYPT}|'$ENCRYPT'|' -e "s/\${MAIL}/$MAIL/" -e 's|${TEMP}|'$TEMP'|g' -e 's|${COMPRESSION}|'$COMPRESSION'|' /etc/borg.d/backup.sh   #Substitutes variables in downloaded configuration file
 
 
 set -x                               #Sends output to terminal
 (wget -P $TEMP https://raw.githubusercontent.com/The-Inamati/LXD-Backup-Script/master/backup.timer)
-mv $TEMP/backup.timer /etc/systemd/system/
 { set +x; } 2>/dev/null              #Stops output to terminal and hides set+x from output
+mv $TEMP/backup.timer /etc/systemd/system/
 sed -i -e 's|${HOUR}|'$HOUR'|' /etc/systemd/system/backup.timer
 
 set -x                               #Sends output to terminal
 (wget -P $TEMP https://raw.githubusercontent.com/The-Inamati/LXD-Backup-Script/master/backup.service)
-mv $TEMP/backup.service /etc/systemd/system/
 { set +x; } 2>/dev/null              #Stops output to terminal and hides set+x from output
+mv $TEMP/backup.service /etc/systemd/system/
+
 
 set -x                               #Sends output to terminal
 (wget -P $TEMP https://raw.githubusercontent.com/The-Inamati/LXD-Backup-Script/master/cleanup.sh)
-mv $TEMP/cleanup.sh /etc/borg.d/
 { set +x; } 2>/dev/null              #Stops output to terminal and hides set+x from output
-sed -i -e 's|${MNT}|'$MNT'|' /etc/borg.d/cleanup.sh
+mv $TEMP/cleanup.sh /etc/borg.d/
 
+sed -i -e 's|${MNT}|'$MNT'|' /etc/borg.d/cleanup.sh
+chmod +x /etc/borg.d/cleanup.sh
 
 systemctl enable backup.timer
 systemctl enable backup.service

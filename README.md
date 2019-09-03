@@ -14,6 +14,7 @@ I desperately needed something that would backup my LXD containers automatically
 - Email Notification Reports of Backups
 - Auto Detection of Missing Containers and Notification
 - Use of S3 Storage in Wasabi as Mount for Backups
+- Automatic Removal of Repositories, Archives and Everything Script Related
 
 ### Types of Backup Storage Available
 - SSH
@@ -29,9 +30,9 @@ Download the file Install_Script, make it executable and run it as root. It will
 
 ### Notes
 
-This script generates a new backup everyday at 3am. If you want to change this you can edit the file at /etc/systemd/system/backup.timer.
-
 The script that is run as a service is located at /etc/borg.d/.
+
+The Cleanup, Restore and Modify Scripts are also at this location.
 
 A log file is saved everytime it runs at /var/log/.
 
@@ -61,6 +62,7 @@ Or you can use your Gmail SMTP details.
 - XMPP Support
 - Possibly Gotify Support also
 - Automatic LXD Restore Script
+- Modify/Migration Script
 - Script Optimization (As I learn more about bash scripting)
 - Plus whatever you tell me that makes sense.
 
