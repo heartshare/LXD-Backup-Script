@@ -32,6 +32,8 @@ Download the file Install_Script, make it executable and run it as root. It will
 
 The script that is run as a service is located at /etc/borg.d/.
 
+The Cleanup, Restore and Modify Scripts are also at this location.
+
 A log file is saved everytime it runs at /var/log/.
 
 The configuration file for Mutt is saved at ~/.muttrc.
