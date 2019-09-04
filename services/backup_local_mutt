@@ -54,10 +54,10 @@ for i in *
 
 							# If success
 							then
-								echo "Failed to add new container $i to backup" | mutt -s "Failed to add container $i" ${MAIL}
+								echo "Failed to add new container $i to backup" | mutt -s "Failed to add container $i" ${EMAIL}
 							else
 								borg key export ${MNT}/$i /etc/borg.d/keys/$i-key.txt
-								echo "New container $i added to backup successfully. Attached Repo Key." | mutt -s "New container $i added" ${MAIL} -a /etc/borg.d/keys/$i-key.txt						
+								echo "New container $i added to backup successfully. Attached Repo Key." | mutt -s "New container $i added" ${EMAIL} -a /etc/borg.d/keys/$i-key.txt						
 								
 								# Create a snapshot of the container, with the snapshot name being 'backup'
 								lxc snapshot $NAME backup
@@ -103,19 +103,19 @@ for i in *
 											# If success
 											then	
 												# Send an email explaining this failure
-												echo "Failed removing snapshot file from local server." | mutt  -s "Backup Failed" ${MAIL}
+												echo "Failed removing snapshot file from local server." | mutt  -s "Backup Failed" ${EMAIL}
 										
 											# If failure
 											else
 												borg info ${MNT}/$i >> /tmp/backup_$i.txt						
 												END=$(date +'%H:%M:%S')
-												echo "Backup has finished successfully. $FILENAME has been created and backed up successfully. Backup started at $BEGIN and was completed at $END. Log and size of backup are in attachments" | mutt -s "Success: $NAME Backup" ${MAIL} -a /var/log/backup/backup_log_$BEGIN.txt -a /tmp/backup_$i.txt 
+												echo "Backup has finished successfully. $FILENAME has been created and backed up successfully. Backup started at $BEGIN and was completed at $END. Log and size of backup are in attachments" | mutt -s "Success: $NAME Backup" ${EMAIL} -a /var/log/backup/backup_log_$BEGIN.txt -a /tmp/backup_$i.txt 
 												rm /tmp/backup_$i.txt
 										fi                
 									# If failure
 									else		
 										# Send an email explaining this failure
-										echo "Creating $FILENAME on local server failed." | mutt  -s "Backup Failed" ${MAIL}
+										echo "Creating $FILENAME on local server failed." | mutt  -s "Backup Failed" ${EMAIL}
 								fi     
 						fi
 							
@@ -166,19 +166,19 @@ for i in *
 									# If success
 									then	
 										# Send an email explaining this failure
-										echo "Failed removing snapshot file from local server." | mutt  -s "Backup Failed" ${MAIL}
+										echo "Failed removing snapshot file from local server." | mutt  -s "Backup Failed" ${EMAIL}
 												
 									# If failure
 									else
 										borg info ${MNT}/$i >> /tmp/backup_$i.txt						
 										END=$(date +'%H:%M:%S')
-										echo "Backup has finished successfully. $FILENAME has been created and backed up successfully. Backup started at $BEGIN and was completed at $END. Log and size of backup are in attachments" | mutt -s "Success: $NAME Backup" ${MAIL} -a /var/log/backup/backup_log_$BEGIN.txt -a /tmp/backup_$i.txt 
+										echo "Backup has finished successfully. $FILENAME has been created and backed up successfully. Backup started at $BEGIN and was completed at $END. Log and size of backup are in attachments" | mutt -s "Success: $NAME Backup" ${EMAIL} -a /var/log/backup/backup_log_$BEGIN.txt -a /tmp/backup_$i.txt 
 										rm /tmp/backup_$i.txt
 									fi                
 							# If failure
 							else		
 								# Send an email explaining this failure
-								echo "Creating $FILENAME on local server failed." | mutt  -s "Backup Failed" ${MAIL}
+								echo "Creating $FILENAME on local server failed." | mutt  -s "Backup Failed" ${EMAIL}
 							fi     
 					fi
 done
@@ -196,7 +196,7 @@ COMPARE=${COMPARE#?}
 if [ "$COMPARE" != "" ]
 	then
 		echo "There is a backup for a container that no longer exists in the system. Missing containers:
-$COMPARE" | mutt -s "Container Missing" ${MAIL}
+$COMPARE" | mutt -s "Container Missing" ${EMAIL}
 	fi
 	
 rm ${TEMP}/comp*
