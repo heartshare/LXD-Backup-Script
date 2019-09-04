@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 ######--Backup Preparation--######
 
@@ -22,7 +22,9 @@ chmod 777 $MNT
 if [ "${MNT: -1}" == "/" ]  #Checks if there is a forward slash in the path and if there is removes it
 	then 
 		MNT=${MNT%?}
-	fi				
+	fi		
+
+echo \$MNT="$MNT" >> $TEMP/env	
 				
 #Prompt to define encryption key
 read -s -p "Please enter the passphrase for your backup repositories: `echo $'\n> '`" ENCRYPT1
@@ -109,6 +111,8 @@ while true
 			esac
 done
 
+echo \$MAIL="$MAIL" >> $TEMP/env
+
 #Prompt to define sender email
 while true 
 	do
@@ -121,6 +125,8 @@ This email has to be configured on your SMTP server:`echo $'\n> '`" FROM_MAIL
                 * ) echo -e "${RED}Please answer yes or no.${RESET}";;
 			esac
 done
+
+echo \$FROM_MAIL="$FROM_MAIL" >> $TEMP/env
 
 #Prompt to define SMTP password
 read -s -p "Please enter the SMTP password for your server: `echo $'\n> '`" SMTP_PASS1
@@ -136,6 +142,8 @@ done
 
 SMTP_PASS="$SMTP_PASS2"
 
+echo \$SMTP_PASS="$SMTP_PASS" >> $TEMP/env
+
 #Prompt to define sender name
 while true 
 	do
@@ -148,6 +156,8 @@ while true
 			esac
 done
                 
+echo \$FROM_NAME="$FROM_NAME" >> $TEMP/env
+				
 #Prompt to define SMTP URL
 while true 
 	do
@@ -160,6 +170,9 @@ while true
 			esac
 done
                 
+echo \$SMTP_URL="$SMTP_URL" >> $TEMP/env
+mv $TEMP/env /etc/borg.d/
+				
 set -x                               #Sends output to terminal
 (wget -P $TEMP https://raw.githubusercontent.com/The-Inamati/LXD-Backup-Script/master/Mutt_Config_File)
 mv $TEMP/Mutt_Config_File ~/.muttrc
@@ -234,6 +247,8 @@ elif [[ $COMPRESSION = LZMA ]]
 	then
 		COMPRESSION="lzma,9"
 	fi
+	
+echo \$COMPRESSION="$COMPRESSION" >> /etc.borg.d/env
 	
 cd $LXD
 for i in * 
@@ -361,12 +376,6 @@ for i in *
 
 				borg create --verbose --filter AME --list --stats --show-rc --progress --compression $COMPRESSION $MNT/$NAME::$NAME-$BEGIN $TEMP/$FILENAME	
 				
-				echo "Pruning $i Repository"
-				printf "\n"
-				sleep 2s
-
-				borg prune -p --list --prefix $NAME- --show-rc --keep-daily 7 --keep-weekly 4 --keep-monthly 6 $MNT/$i
-						
 				echo "Checking Repository Consistency"
 				printf "\n"
 				sleep 2s
@@ -498,14 +507,45 @@ while true; do
     esac
 done
 
+#Prompt for daily retention of automatic backup
+while true; do
+        read -p "Please select how many daily backups you wish to have `echo $'\n> '`" DAILY
+        case $DAILY in
+      ([0-7] ) echo "Proceeding...";sleep 2s;break;;
+           * ) echo "Please input valid number.";sleep 2s;;
+    esac
+done
+
+echo \$DAILY="$DAILY" >> /etc/borg.d/env
+
+#Prompt for weekly retention of automatic backup
+while true; do
+        read -p "Please select how many weekly backups you wish to have `echo $'\n> '`" WEEKLY
+        case $WEEKLY in
+      ([0-4] ) echo "Proceeding...";sleep 2s;break;;
+             * ) echo "Please input valid hour.";sleep 2s;;
+    esac
+done
+
+echo \$WEEKLY="$WEEKLY" >> /etc/borg.d/env
+
+#Prompt for monthly retention of automatic backup
+while true; do
+        read -p "Please select how many monthly backups you wish to have `echo $'\n> '`" MONTHLY
+        case $MONTHLY in
+      ([0-9] ) echo "Proceeding...";sleep 2s;break;;
+      (1[0-2] ) echo "Proceeding...";sleep 2s;break;;
+             * ) echo "Please input valid hour.";sleep 2s;;
+    esac
+done
+
+echo \$MONTHLY="$MONTHLY" >> /etc/borg.d/env
 
 set -x                               #Sends output to terminal
 (wget -P $TEMP https://raw.githubusercontent.com/The-Inamati/LXD-Backup-Script/master/services/backup_local_mutt)
 { set +x; } 2>/dev/null              #Stops output to terminal and hides set+x from output
 mv $TEMP/backup_local_mutt /etc/borg.d/backup.sh
 chmod +x /etc/borg.d/backup.sh
-sed -i -e 's|${MNT}|'$MNT'|' -e 's|${LXD}|'$LXD'|' -e 's|${ENCRYPT}|'$ENCRYPT'|' -e "s/\${MAIL}/$MAIL/" -e 's|${TEMP}|'$TEMP'|g' -e 's|${COMPRESSION}|'$COMPRESSION'|' /etc/borg.d/backup.sh   #Substitutes variables in downloaded configuration file
-
 
 set -x                               #Sends output to terminal
 (wget -P $TEMP https://raw.githubusercontent.com/The-Inamati/LXD-Backup-Script/master/backup.timer)
@@ -523,14 +563,12 @@ set -x                               #Sends output to terminal
 (wget -P $TEMP https://raw.githubusercontent.com/The-Inamati/LXD-Backup-Script/master/cleanup.sh)
 { set +x; } 2>/dev/null              #Stops output to terminal and hides set+x from output
 mv $TEMP/cleanup.sh /etc/borg.d/
-sed -i -e 's|${MNT}|'$MNT'|' /etc/borg.d/cleanup.sh
 chmod +x /etc/borg.d/cleanup.sh
 
 set -x                               #Sends output to terminal
 (wget -P $TEMP https://raw.githubusercontent.com/The-Inamati/LXD-Backup-Script/master/restore.sh)
 { set +x; } 2>/dev/null              #Stops output to terminal and hides set+x from output
 mv $TEMP/restore.sh /etc/borg.d/
-sed -i -e 's|${MNT}|'$MNT'|' /etc/borg.d/restore.sh
 chmod +x /etc/borg.d/restore.sh
 
 systemctl enable backup.timer
