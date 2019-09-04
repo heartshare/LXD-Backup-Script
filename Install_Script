@@ -4,7 +4,7 @@
 BEGIN=$(date +'%d-%m_%H:%M:%S')
 ##
 ## Required software libaries:
-##   'mutt'             Used for sending email using the 'mail' command
+##   'mutt'             Used for sending email notifications
 ##   'borgbackup'       Used for backing up files with encryption, retention and deduplication
 ##   'WGET'             Needed to get the cuswtomized borgmatic scripts
 ##   'S3FS'+'Fuse'            Needed to mount S3 bucket as FS
@@ -24,7 +24,7 @@ My only work was the script itself as it is just an integration of several tools
 			 	 
 Depending on your choices the following software may be installed:
 
-Mutt             Used for sending email using the 'mail' command
+Mutt             Used for sending email notifications
 Borgbackup       Used for backing up files with encryption, retention and deduplication
 Wget             Needed to get the cuswtomized borgmatic scripts
 S3FS+Fuse        Needed to mount S3 bucket as FS
