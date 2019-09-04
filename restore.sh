@@ -132,5 +132,5 @@ if [ $? -ne 0 ]
 fi
 
 echo "Removing Leftovers"
-lxc image delete restore-$NAME
+lxc image delete restore-$RESTORE
 rm -rf /restore
