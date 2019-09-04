@@ -113,7 +113,7 @@ done
 		
 #launch container using image
 echo "Restauring Container"
-lxc launch restore-$NAME mail
+lxc launch restore-$RESTORE $NAME
 
 
 echo "Checking for Container"
