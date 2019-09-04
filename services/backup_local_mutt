@@ -1,6 +1,8 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 BEGIN=$(date +'%d-%m_%H:%M:%S')
+
+source /etc/borg.d/env
 
 exec > >(tee -i /var/log/backup/backup_log_$BEGIN.txt)  #This file will log everything
 exec 2>&1
@@ -69,7 +71,7 @@ for i in *
 						
 								borg create --verbose --filter AME --list --stats --show-rc --compression ${COMPRESSION} ${MNT}/$NAME::$NAME-$BEGIN ${TEMP}/$FILENAME
 	
-								borg prune --list --prefix $NAME- --show-rc --keep-daily 7 --keep-weekly 4 --keep-monthly 6 ${MNT}/$i
+								borg prune --list --prefix $NAME- --show-rc --keep-daily $DAILY --keep-weekly $WEEKLY --keep-monthly $MONTHLY ${MNT}/$i
 						
 								borg check --repository-only ${MNT}/$i
 		
@@ -134,7 +136,7 @@ for i in *
 						
 						borg create --verbose --filter AME --list --stats --show-rc --compression ${COMPRESSION} ${MNT}/$NAME::$NAME-$BEGIN ${TEMP}/$FILENAME
 		
-						borg prune --list --prefix $NAME- --show-rc --keep-daily 7 --keep-weekly 4 --keep-monthly 6 ${MNT}/$i
+						borg prune --list --prefix $NAME- --show-rc --keep-daily $DAILY --keep-weekly $WEEKLY --keep-monthly $MONTHLY ${MNT}/$i
 				
 						borg check --repository-only ${MNT}/$i
 					
