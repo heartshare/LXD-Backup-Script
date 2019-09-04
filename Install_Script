@@ -149,7 +149,7 @@ if [ "${TEMP: -1}" == "/" ]  #Checks if there is a forward slash in the path and
 		TEMP=${TEMP%?}
 	fi
 
-echo $TEMP=\$"\"$TEMP\"" >> $TEMP/env
+echo TEMP=\$"\"$TEMP\"" >> $TEMP/env
 	
 echo "Verifying if needed packages are installed."
 echo "-------------------------------------------"
@@ -287,7 +287,7 @@ if [ "${LXD: -1}" == "/" ]  #Checks if there is a forward slash in the path and 
 		LXD=${LXD%?}
 	fi  
   
-echo $LXD=\$"\"$LXD\"" >> $TEMP/env
+echo LXD=\$"\"$LXD\"" >> $TEMP/env
 
 ####-Definition of backup and notification settings
 
