@@ -1,5 +1,7 @@
 #!/bin/bash
 
+clear
+
 echo "Restore Script"
 echo "--------------"
 sleep 3s
