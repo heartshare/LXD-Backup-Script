@@ -616,6 +616,13 @@ mv $TEMP/cleanup.sh /etc/borg.d/
 sed -i -e 's|${MNT}|'$MNT'|' /etc/borg.d/cleanup.sh
 chmod +x /etc/borg.d/cleanup.sh
 
+set -x                               #Sends output to terminal
+(wget -P $TEMP https://raw.githubusercontent.com/The-Inamati/LXD-Backup-Script/master/restore.sh)
+{ set +x; } 2>/dev/null              #Stops output to terminal and hides set+x from output
+mv $TEMP/restore.sh /etc/borg.d/
+sed -i -e 's|${MNT}|'$MNT'|' /etc/borg.d/restore.sh
+chmod +x /etc/borg.d/restore.sh
+
 systemctl enable backup.timer
 systemctl enable backup.service
 systemctl start backup.timer
