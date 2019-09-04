@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 ######--Backup Preparation--######
 
@@ -14,6 +14,9 @@ while true
 			esac
 done
 
+
+echo $ACCESS_KEY=\$"\"$ACCESS_KEY\"" >> $TEMP/env
+
 #Prompt to define wasabi secret key
 while true 
 	do
@@ -25,6 +28,8 @@ while true
                 * ) echo -e "${RED}Please answer yes or no.${RESET}";;
 			esac
 done
+
+echo $SECRET_KEY=\$"\"$SECRET_KEY\"" >> $TEMP/env
 
 #Prompt to define bucket region
 while true 
@@ -38,6 +43,8 @@ while true
                 * ) echo -e "${RED}Please answer yes or no.${RESET}";;
 			esac
 done
+
+echo $BUCKET_LOC=\$"\"$BUCKET_LOC\"" >> $TEMP/env
 				
 #Prompt to define bucket name
 while true 
@@ -50,6 +57,8 @@ while true
                 * ) echo -e "${RED}Please answer yes or no.${RESET}";;
 			esac
 done
+
+echo $BUCKET=\$"\"$BUCKET\"" >> $TEMP/env
 
 #Prompt to define repo location
 while true 
@@ -72,7 +81,9 @@ if [ "${MNT: -1}" == "/" ]  #Checks if there is a forward slash in the path and 
 	then 
 		MNT=${MNT%?}
 	fi				
-				
+	
+echo $MNT=\$"\"$MNT\"" >> $TEMP/env
+	
 echo "Installing S3FS and Fuse"
 sleep 2s
 apt install s3fs fuse -y 
@@ -138,8 +149,8 @@ ENCRYPT="$ENCRYPT2"
 
 echo "$ENCRYPT" >> /etc/borg.d/.borg-passphrase
 chmod 400 /etc/borg.d/.borg-passphrase
-
 export BORG_PASSCOMMAND="cat /etc/borg.d/.borg-passphrase"
+mv $TEMP/env /etc/borg.d/
 
 # Checking to see if the Mail package is installed on your system
 # Used for sending email confirmations of the backup process
@@ -192,14 +203,16 @@ printf "\n"
 #Prompt to define notification email
 while true 
 	do
-		read -p "Please define email to receive backup notifications: `echo $'\n> '`" MAIL
-		read -p "You entered '$MAIL' is this correct?(y/n)" yn
+		read -p "Please define email to receive backup notifications: `echo $'\n> '`" EMAIL
+		read -p "You entered '$EMAIL' is this correct?(y/n)" yn
 			case $yn in
 			[Yy]* ) break;;
 			[Nn]* ) echo -e "${RED}Please try again:${RESET}";sleep 2s;;
 				* ) echo -e "${RED}Please answer yes or no.${RESET}";;
 			esac
 done
+
+echo $EMAIL=\$"\"$EMAIL\"" >> /etc/borg.d/env
 
 #Prompt to define sender email
 while true 
@@ -213,6 +226,8 @@ This email has to be configured on your SMTP server:`echo $'\n> '`" FROM_MAIL
                 * ) echo -e "${RED}Please answer yes or no.${RESET}";;
 			esac
 done
+
+echo $FROM_MAIL=\$"\"$FROM_MAIL\"" >> /etc/borg.d/env
 
 #Prompt to define SMTP password
 read -s -p "Please enter the SMTP password for your server: `echo $'\n> '`" SMTP_PASS1
@@ -228,6 +243,8 @@ done
 
 SMTP_PASS="$SMTP_PASS2"
 
+echo $SMTP_PASS=\$"\"$SMTP_PASS\"" >> /etc/borg.d/env
+
 #Prompt to define sender name
 while true 
 	do
@@ -239,6 +256,8 @@ while true
 				* ) echo -e "${RED}Please answer yes or no.${RESET}";;
 			esac
 done
+
+echo $FROM_NAME=\$"\"$FROM_NAME\"" >> /etc/borg.d/env
                 
 #Prompt to define SMTP URL
 while true 
@@ -251,6 +270,8 @@ while true
 				* ) echo -e "${RED}Please answer yes or no.${RESET}";;
 			esac
 done
+
+echo $SMTP_URL=\$"\"$SMTP_URL\"" >> /etc/borg.d/env
                 
 set -x                               #Sends output to terminal
 (wget -P $TEMP https://raw.githubusercontent.com/The-Inamati/LXD-Backup-Script/master/Mutt_Config_File)
@@ -262,7 +283,7 @@ sed -i -e 's|${FROM_MAIL}|'$FROM_MAIL'|' -e "s/\${FROM_NAME}/$FROM_NAME/" -e 's|
 mkdir -p ~/.mutt/cache #Creates cache directory for Mutt
 
 echo -e "${GREEN}Mutt was intalled and configured successfully.${RESET}" 
-echo "Email notifications were configured with settings indicated in the attachment." | mutt  -s "Backup Test Email" $MAIL -a ~/.muttrc  #email notification
+echo "Email notifications were configured with settings indicated in the attachment." | mutt  -s "Backup Test Email" $EMAIL -a ~/.muttrc  #email notification
 echo "A test email was just sent with the details you specified. Please confirm you received it.
 In case you don't receive it please check your Mutt configuration at ~/.muttrc.
 The email may also be greylisted. Please try again with the command shown below after the script finishes. 
@@ -326,6 +347,8 @@ elif [[ $COMPRESSION = LZMA ]]
 		COMPRESSION="lzma,9"
 	fi
 
+echo $COMPRESSION=\$"\"$COMPRESSION\"" >> /etc/borg.d/env
+	
 cd $LXD
 for i in * 
 	do
@@ -392,7 +415,7 @@ for i in *
 						cat /etc/borg.d/keys/$i-key.txt
 						printf "\n"
 						echo "Please save the key or the file with it located in /etc/borg.d/keys/$i-key.txt"
-						echo "Key for $i exported successfully" | mutt -s "Repo key for $i" $MAIL -a /etc/borg.d/keys/$i-key.txt 
+						echo "Key for $i exported successfully" | mutt -s "Repo key for $i" $EMAIL -a /etc/borg.d/keys/$i-key.txt 
 						echo "This key was also sent to you by email"
 						printf "\n"
 						read -p "Press enter to continue"
@@ -449,13 +472,7 @@ for i in *
 				sleep 2s
 
 				borg create --verbose --filter AME --list --stats --show-rc --progress --compression $COMPRESSION $MNT/$NAME::$NAME-$BEGIN $TEMP/$FILENAME	
-				
-				echo "Pruning $i Repository"
-				printf "\n"
-				sleep 2s
-
-				borg prune -p --list --prefix $NAME- --show-rc	--keep-daily 7 --keep-weekly 4 --keep-monthly 6 $MNT/$i
-						
+									
 				echo "Checking Repository Consistency"
 				printf "\n"
 				sleep 2s
@@ -514,9 +531,9 @@ for i in *
 										printf "\n"
 					
 										# Send an email explaining this failure
-										echo "An email will be sent to $MAIL"
+										echo "An email will be sent to $EMAIL"
 										echo -e "${RED}$FILENAME was supposed to be removed, but still exists on the local server.${RESET}"
-										echo "Failed removing snapshot file from local server." | mutt  -s "Backup Failed" $MAIL
+										echo "Failed removing snapshot file from local server." | mutt  -s "Backup Failed" $EMAIL
 										echo "A log file exists in $TEMP/backup_log_$BEGIN.txt"
 										sleep 5s
 										exit 1 # Exit with general error
@@ -527,9 +544,9 @@ for i in *
 				
 										borg info $MNT/$i >> /tmp/backup_$i.txt						
 										echo -e "${GREEN}Backup has finished successfully. $FILENAME has been created and backed up successfully.${RESET}" 
-										echo "An email will be sent to $MAIL"
+										echo "An email will be sent to $EMAIL"
 										END=$(date +'%H:%M:%S')
-										echo "Backup has finished successfully. $FILENAME has been created and backed up successfully. Backup started at $BEGIN and was completed at $END. Log and size of backup are in attachments" | mutt -s "Success: $NAME Backup" $MAIL -a $TEMP/backup_log_$BEGIN.txt -a /tmp/backup_$i.txt 
+										echo "Backup has finished successfully. $FILENAME has been created and backed up successfully. Backup started at $BEGIN and was completed at $END. Log and size of backup are in attachments" | mutt -s "Success: $NAME Backup" $EMAIL -a $TEMP/backup_log_$BEGIN.txt -a /tmp/backup_$i.txt 
 										rm /tmp/backup_$i.txt
 									fi                
 						# If failure
@@ -539,9 +556,9 @@ for i in *
 							printf "\n"
 		
 							# Send an email explaining this failure
-							echo "An email will be sent to $MAIL"
+							echo "An email will be sent to $EMAIL"
 							echo -e "${RED}Creating $FILENAME on local server failed.${RESET}" 
-							echo "Creating $FILENAME on local server failed." | mutt  -s "Backup Failed" $MAIL
+							echo "Creating $FILENAME on local server failed." | mutt  -s "Backup Failed" $EMAIL
 							echo "A log file exists in $TEMP/backup_log_$BEGIN.txt"
 							sleep 5s
 							exit 1 # Exit with general error
@@ -588,13 +605,45 @@ while true; do
     esac
 done
 
+#Prompt for daily retention of automatic backup
+while true; do
+        read -p "Please select how many daily backups you wish to have `echo $'\n> '`" DAILY
+        case $DAILY in
+      ([0-7] ) echo "Proceeding...";sleep 2s;break;;
+           * ) echo "Please input valid number.";sleep 2s;;
+    esac
+done
+
+echo $DAILY=\$"\"$DAILY\"" >> /etc/borg.d/env
+
+#Prompt for weekly retention of automatic backup
+while true; do
+        read -p "Please select how many weekly backups you wish to have `echo $'\n> '`" WEEKLY
+        case $WEEKLY in
+      ([0-4] ) echo "Proceeding...";sleep 2s;break;;
+             * ) echo "Please input valid hour.";sleep 2s;;
+    esac
+done
+
+echo $WEEKLY=\$"\"$WEEKLY\"" >> /etc/borg.d/env
+
+#Prompt for monthly retention of automatic backup
+while true; do
+        read -p "Please select how many monthly backups you wish to have `echo $'\n> '`" MONTHLY
+        case $MONTHLY in
+      ([0-9] ) echo "Proceeding...";sleep 2s;break;;
+      (1[0-2] ) echo "Proceeding...";sleep 2s;break;;
+             * ) echo "Please input valid hour.";sleep 2s;;
+    esac
+done
+
+echo $MONTHLY=\$"\"$MONTHLY\"" >> /etc/borg.d/env
+
 set -x                               #Sends output to terminal
 (wget -P $TEMP https://raw.githubusercontent.com/The-Inamati/LXD-Backup-Script/master/services/backup_wasabi_mutt)
 { set +x; } 2>/dev/null              #Stops output to terminal and hides set+x from output
 mv $TEMP/backup_wasabi_mutt /etc/borg.d/backup.sh
 chmod +x /etc/borg.d/backup.sh
-sed -i -e 's|${MNT}|'$MNT'|' -e "s/\${BUCKET}/$BUCKET/" -e 's|${BUCKET_LOC}|'$BUCKET_LOC'|' -e 's|${LXD}|'$LXD'|' -e 's|${ENCRYPT}|'$ENCRYPT'|' -e "s/\${MAIL}/$MAIL/" -e 's|${TEMP}|'$TEMP'|g' -e 's|${COMPRESSION}|'$COMPRESSION'|' /etc/borg.d/backup.sh   #Substitutes variables in downloaded configuration file
-
 
 set -x                               #Sends output to terminal
 (wget -P $TEMP https://raw.githubusercontent.com/The-Inamati/LXD-Backup-Script/master/backup.timer)
@@ -613,14 +662,12 @@ set -x                               #Sends output to terminal
 (wget -P $TEMP https://raw.githubusercontent.com/The-Inamati/LXD-Backup-Script/master/cleanup.sh)
 { set +x; } 2>/dev/null              #Stops output to terminal and hides set+x from output
 mv $TEMP/cleanup.sh /etc/borg.d/
-sed -i -e 's|${MNT}|'$MNT'|' /etc/borg.d/cleanup.sh
 chmod +x /etc/borg.d/cleanup.sh
 
 set -x                               #Sends output to terminal
 (wget -P $TEMP https://raw.githubusercontent.com/The-Inamati/LXD-Backup-Script/master/restore.sh)
 { set +x; } 2>/dev/null              #Stops output to terminal and hides set+x from output
 mv $TEMP/restore.sh /etc/borg.d/
-sed -i -e 's|${MNT}|'$MNT'|' /etc/borg.d/restore.sh
 chmod +x /etc/borg.d/restore.sh
 
 systemctl enable backup.timer
