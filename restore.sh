@@ -6,6 +6,8 @@ echo "Restore Script"
 echo "--------------"
 sleep 3s
 
+rm -rf /restore 2>/dev/null >/dev/null
+
 export BORG_PASSCOMMAND="cat /etc/borg.d/.borg-passphrase"
 
 RESET='\e[0m'
@@ -80,24 +82,26 @@ echo "-------------------"
 
 cd /restore/tmp
 
+echo "Importing Image to LXD"
+
 for i in *
-
-#Import image to local image list
-echo "Importing Image"
-lxc image import $i --alias restore-$RESTORE
-
-while true 
 	do
-		read -p "Please choose a name for the container you want to restore. Default is Repo name. [$RESTORE]: `echo $'\n> '`" NAME
-        NAME=${NAME:-$RESTORE}                                                          #Used to provide default option
-			read -p "You selected '$NAME' is this correct?(y/n)" yn
-			case $yn in
-            [Yy]* ) break;;
-            [Nn]* ) echo "Please try again:";sleep 2s;;
-                * ) echo "Please answer yes or no.";;
-            esac
-done
+		#Import image to local image list
+		lxc image import $i --alias restore-$RESTORE
 
+		while true 
+			do
+				read -p "Please choose a name for the container you want to restore. Default is Repo name. [$RESTORE]: `echo $'\n> '`" NAME
+				NAME=${NAME:-$RESTORE}                                                          #Used to provide default option
+				read -p "You selected '$NAME' is this correct?(y/n)" yn
+					case $yn in
+						[Yy]* ) break;;
+						[Nn]* ) echo "Please try again:";sleep 2s;;
+							* ) echo "Please answer yes or no.";;
+					esac
+		done
+done
+		
 #launch container using image
 echo "Restauring Container"
 lxc launch restore-$NAME mail
