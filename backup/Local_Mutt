@@ -24,7 +24,7 @@ if [ "${MNT: -1}" == "/" ]  #Checks if there is a forward slash in the path and 
 		MNT=${MNT%?}
 	fi		
 
-echo $MNT=\$"\"$MNT\"" >> $TEMP/env	
+echo MNT=\$"\"$MNT\"" >> $TEMP/env	
 				
 #Prompt to define encryption key
 read -s -p "Please enter the passphrase for your backup repositories: `echo $'\n> '`" ENCRYPT1
@@ -50,7 +50,7 @@ echo "$ENCRYPT" >> /etc/borg.d/.borg-passphrase
 chmod 400 /etc/borg.d/.borg-passphrase
 export BORG_PASSCOMMAND="cat /etc/borg.d/.borg-passphrase"
 
-mv $TEMP/env /etc/borg.d/
+mv TEMP/env /etc/borg.d/
 
 # Checking to see if the Mail package is installed on your system
 # Used for sending email confirmations of the backup process
@@ -112,7 +112,7 @@ while true
 			esac
 done
 
-echo $EMAIL=\$"\"$EMAIL\"" >> /etc/borg.d/env
+echo EMAIL=\$"\"$EMAIL\"" >> /etc/borg.d/env
 
 #Prompt to define sender email
 while true 
@@ -127,7 +127,7 @@ This email has to be configured on your SMTP server:`echo $'\n> '`" FROM_MAIL
 			esac
 done
 
-echo $FROM_MAIL=\$"\"$FROM_MAIL\"" >> /etc/borg.d/env
+echo FROM_MAIL=\$"\"$FROM_MAIL\"" >> /etc/borg.d/env
 
 #Prompt to define SMTP password
 read -s -p "Please enter the SMTP password for your server: `echo $'\n> '`" SMTP_PASS1
@@ -143,7 +143,7 @@ done
 
 SMTP_PASS="$SMTP_PASS2"
 
-echo $SMTP_PASS=\$"\"$SMTP_PASS\"" >> /etc/borg.d/env
+echo SMTP_PASS=\$"\"$SMTP_PASS\"" >> /etc/borg.d/env
 
 #Prompt to define sender name
 while true 
@@ -157,7 +157,7 @@ while true
 			esac
 done
                 
-echo $FROM_NAME=\$"\"$FROM_NAME\"" >> /etc/borg.d/env
+echo FROM_NAME=\$"\"$FROM_NAME\"" >> /etc/borg.d/env
 				
 #Prompt to define SMTP URL
 while true 
@@ -171,7 +171,7 @@ while true
 			esac
 done
                 
-echo $SMTP_URL=\$"\"$SMTP_URL\"" >> /etc/borg.d/env				
+echo SMTP_URL=\$"\"$SMTP_URL\"" >> /etc/borg.d/env				
 				
 set -x                               #Sends output to terminal
 (wget -P $TEMP https://raw.githubusercontent.com/The-Inamati/LXD-Backup-Script/master/Mutt_Config_File)
@@ -248,7 +248,7 @@ elif [[ $COMPRESSION = LZMA ]]
 		COMPRESSION="lzma,9"
 	fi
 	
-echo $COMPRESSION=\$"\"$COMPRESSION\"" >> /etc/borg.d/env
+echo COMPRESSION=\$"\"$COMPRESSION\"" >> /etc/borg.d/env
 	
 cd $LXD
 for i in * 
@@ -516,7 +516,7 @@ while true; do
     esac
 done
 
-echo $DAILY=\$"\"$DAILY\"" >> /etc/borg.d/env
+echo DAILY=\$"\"$DAILY\"" >> /etc/borg.d/env
 
 #Prompt for weekly retention of automatic backup
 while true; do
@@ -527,7 +527,7 @@ while true; do
     esac
 done
 
-echo $WEEKLY=\$"\"$WEEKLY\"" >> /etc/borg.d/env
+echo WEEKLY=\$"\"$WEEKLY\"" >> /etc/borg.d/env
 
 #Prompt for monthly retention of automatic backup
 while true; do
@@ -539,7 +539,7 @@ while true; do
     esac
 done
 
-echo $MONTHLY=\$"\"$MONTHLY\"" >> /etc/borg.d/env
+echo MONTHLY=\$"\"$MONTHLY\"" >> /etc/borg.d/env
 
 set -x                               #Sends output to terminal
 (wget -P $TEMP https://raw.githubusercontent.com/The-Inamati/LXD-Backup-Script/master/services/backup_local_mutt)
