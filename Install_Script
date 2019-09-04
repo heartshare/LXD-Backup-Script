@@ -7,7 +7,7 @@ BEGIN=$(date +'%d-%m_%H:%M:%S')
 ##   'mutt'             Used for sending email using the 'mail' command
 ##   'borgbackup'       Used for backing up files with encryption, retention and deduplication
 ##   'WGET'             Needed to get the cuswtomized borgmatic scripts
-##   'S3FS'+'Fuse'            Needed to mount S3 bucket as FS
+##   'S3FS'+'Fuse'      Needed to mount S3 bucket as FS
 
 RESET='\e[0m'
 RED='\e[31m'
