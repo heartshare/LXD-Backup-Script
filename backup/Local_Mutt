@@ -50,7 +50,7 @@ echo "$ENCRYPT" >> /etc/borg.d/.borg-passphrase
 chmod 400 /etc/borg.d/.borg-passphrase
 export BORG_PASSCOMMAND="cat /etc/borg.d/.borg-passphrase"
 
-mv TEMP/env /etc/borg.d/
+mv $TEMP/env /etc/borg.d/
 
 # Checking to see if the Mail package is installed on your system
 # Used for sending email confirmations of the backup process
