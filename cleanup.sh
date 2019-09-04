@@ -1,12 +1,21 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 clear
+
+#Check if running as root
+if [ "$EUID" -ne 0 ]
+	then 
+		echo -e "${RED}Please run this script as root${RESET}"
+		exit 1     # Exit with General Error
+fi
 
 echo "Cleanup Script"
 echo "--------------"
 sleep 3s
 
 export BORG_PASSCOMMAND="cat /etc/borg.d/.borg-passphrase"
+
+source /etc/borg.d/env
 
 RESET='\e[0m'
 RED='\e[31m'

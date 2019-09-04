@@ -5,6 +5,7 @@ BEGIN=$(date +'%d-%m_%H:%M:%S')
 exec > >(tee -i /var/log/backup/backup_log_$BEGIN.txt)  #This file will log everything
 exec 2>&1
 
+source /etc/borg.d/env
 
 #Check to see if Bucket is mounted
 mount -l | grep ${MNT} 
