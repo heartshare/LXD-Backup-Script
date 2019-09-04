@@ -15,7 +15,7 @@ while true
 done
 
 
-echo $ACCESS_KEY=\$"\"$ACCESS_KEY\"" >> $TEMP/env
+echo ACCESS_KEY=\$"\"$ACCESS_KEY\"" >> $TEMP/env
 
 #Prompt to define wasabi secret key
 while true 
@@ -29,7 +29,7 @@ while true
 			esac
 done
 
-echo $SECRET_KEY=\$"\"$SECRET_KEY\"" >> $TEMP/env
+echo SECRET_KEY=\$"\"$SECRET_KEY\"" >> $TEMP/env
 
 #Prompt to define bucket region
 while true 
@@ -44,7 +44,7 @@ while true
 			esac
 done
 
-echo $BUCKET_LOC=\$"\"$BUCKET_LOC\"" >> $TEMP/env
+echo BUCKET_LOC=\$"\"$BUCKET_LOC\"" >> $TEMP/env
 				
 #Prompt to define bucket name
 while true 
@@ -58,7 +58,7 @@ while true
 			esac
 done
 
-echo $BUCKET=\$"\"$BUCKET\"" >> $TEMP/env
+echo BUCKET=\$"\"$BUCKET\"" >> $TEMP/env
 
 #Prompt to define repo location
 while true 
@@ -82,7 +82,7 @@ if [ "${MNT: -1}" == "/" ]  #Checks if there is a forward slash in the path and 
 		MNT=${MNT%?}
 	fi				
 	
-echo $MNT=\$"\"$MNT\"" >> $TEMP/env
+echo MNT=\$"\"$MNT\"" >> $TEMP/env
 	
 echo "Installing S3FS and Fuse"
 sleep 2s
@@ -212,7 +212,7 @@ while true
 			esac
 done
 
-echo $EMAIL=\$"\"$EMAIL\"" >> /etc/borg.d/env
+echo EMAIL=\$"\"$EMAIL\"" >> /etc/borg.d/env
 
 #Prompt to define sender email
 while true 
@@ -227,7 +227,7 @@ This email has to be configured on your SMTP server:`echo $'\n> '`" FROM_MAIL
 			esac
 done
 
-echo $FROM_MAIL=\$"\"$FROM_MAIL\"" >> /etc/borg.d/env
+echo FROM_MAIL=\$"\"$FROM_MAIL\"" >> /etc/borg.d/env
 
 #Prompt to define SMTP password
 read -s -p "Please enter the SMTP password for your server: `echo $'\n> '`" SMTP_PASS1
@@ -243,7 +243,7 @@ done
 
 SMTP_PASS="$SMTP_PASS2"
 
-echo $SMTP_PASS=\$"\"$SMTP_PASS\"" >> /etc/borg.d/env
+echo SMTP_PASS=\$"\"$SMTP_PASS\"" >> /etc/borg.d/env
 
 #Prompt to define sender name
 while true 
@@ -257,7 +257,7 @@ while true
 			esac
 done
 
-echo $FROM_NAME=\$"\"$FROM_NAME\"" >> /etc/borg.d/env
+echo FROM_NAME=\$"\"$FROM_NAME\"" >> /etc/borg.d/env
                 
 #Prompt to define SMTP URL
 while true 
@@ -271,7 +271,7 @@ while true
 			esac
 done
 
-echo $SMTP_URL=\$"\"$SMTP_URL\"" >> /etc/borg.d/env
+echo SMTP_URL=\$"\"$SMTP_URL\"" >> /etc/borg.d/env
                 
 set -x                               #Sends output to terminal
 (wget -P $TEMP https://raw.githubusercontent.com/The-Inamati/LXD-Backup-Script/master/Mutt_Config_File)
@@ -347,7 +347,7 @@ elif [[ $COMPRESSION = LZMA ]]
 		COMPRESSION="lzma,9"
 	fi
 
-echo $COMPRESSION=\$"\"$COMPRESSION\"" >> /etc/borg.d/env
+echo COMPRESSION=\$"\"$COMPRESSION\"" >> /etc/borg.d/env
 	
 cd $LXD
 for i in * 
@@ -614,7 +614,7 @@ while true; do
     esac
 done
 
-echo $DAILY=\$"\"$DAILY\"" >> /etc/borg.d/env
+echo DAILY=\$"\"$DAILY\"" >> /etc/borg.d/env
 
 #Prompt for weekly retention of automatic backup
 while true; do
@@ -625,7 +625,7 @@ while true; do
     esac
 done
 
-echo $WEEKLY=\$"\"$WEEKLY\"" >> /etc/borg.d/env
+echo WEEKLY=\$"\"$WEEKLY\"" >> /etc/borg.d/env
 
 #Prompt for monthly retention of automatic backup
 while true; do
@@ -637,7 +637,7 @@ while true; do
     esac
 done
 
-echo $MONTHLY=\$"\"$MONTHLY\"" >> /etc/borg.d/env
+echo MONTHLY=\$"\"$MONTHLY\"" >> /etc/borg.d/env
 
 set -x                               #Sends output to terminal
 (wget -P $TEMP https://raw.githubusercontent.com/The-Inamati/LXD-Backup-Script/master/services/backup_wasabi_mutt)
