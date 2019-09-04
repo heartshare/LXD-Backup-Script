@@ -149,7 +149,7 @@ if [ "${TEMP: -1}" == "/" ]  #Checks if there is a forward slash in the path and
 		TEMP=${TEMP%?}
 	fi
 
-echo \TEMP="$TEMP" >> $TEMP/env
+echo \$TEMP="$TEMP" >> $TEMP/env
 	
 echo "Verifying if needed packages are installed."
 echo "-------------------------------------------"
