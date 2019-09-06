@@ -28,7 +28,7 @@ while [[ $yn != y ]]
 					["Notification Settings"]*) break;;
 					["General Settings"]*) break;;
 					["Wasabi Settings"]*) break;;
-												[Exit]*) exit 0;;
+												["Exit"]*) exit 0;;
 										*) echo -e "${RED}Invalid Option${RESET}";;
 				esac
 		done
@@ -57,7 +57,7 @@ if [[ "$FIRST" == "Auto Backup Settings" ]]
 							["Backup Location"]*) break;;
 							["Compression"]*) break;;
 							["Retention Settings"]*) break;;
-															[Exit]*) exit 0;;
+															["Exit"]*) exit 0;;
 												*) echo -e "${RED}Invalid Option.${RESET}";;
 						esac
 				done
@@ -118,12 +118,13 @@ if [[ "$FIRST" == "Auto Backup Settings" ]]
 					do
 						# Parent menu items declared here
 						PS3="Please choose the backup type you are currently using: "
-						select BACKUP_TYPE in Wasabi Local
+						select BACKUP_TYPE in Wasabi Local Exit
 							do
 								# case statement to compare the first menu items
 								case $BACKUP_TYPE in
 									["Wasabi"]*) break;;
 									["Local"]*) break;;
+									["Exit"]*) exit 0;;
 											*) echo -e "${RED}Invalid Option.${RESET}";;
 								esac
 						done
@@ -170,12 +171,13 @@ if [[ "$FIRST" == "Auto Backup Settings" ]]
 							do
 								# Parent menu items declared here
 								PS3="Please choose what to do with current Wasabi settings: "
-								select WASABI in Keep Change
+								select WASABI in Keep Change Exit
 									do
 										# case statement to compare the first menu items
 										case $WASABI in
 											["Keep"]*) break;;
 											["Change"]*) break;;
+											["Exit"]*) exit 0;;
 													*) echo -e "${RED}Invalid Option.${RESET}";;
 										esac
 								done
@@ -467,10 +469,10 @@ if [[ "$FIRST" == "Auto Backup Settings" ]]
 						select COMPRESSION in LZ4 ZLIB ZSTD LZMA
 							do
 								case $COMPRESSION in
-									[LZ4]*)  break;;
-									[ZLIB]*) break;;
-									[ZSTD]*) break;;
-									[LZMA]*) break;;
+									["LZ4"]*)  break;;
+									["ZLIB"]*) break;;
+									["ZSTD"]*) break;;
+									["LZMA"]*) break;;
 											*) echo -e "${RED}Invalid Option.${RESET}";;
 								esac
 						done
@@ -512,13 +514,14 @@ if [[ "$FIRST" == "Auto Backup Settings" ]]
 				while [[ $yn != y ]]
 					do
 						PS3="Please choose which retention setting you wish to change: "
-						select RETENTION in Daily Weekly Monthly All
+						select RETENTION in Daily Weekly Monthly All Exit
 							do
 								case $RETENTION in
 									["Daily"]*) break;;
 									["Weekly"]*) break;;
 									["Monthly"]*) break;;
 									["All"]*) break;;
+									["Exit"]*) exit 0;;
 											*) echo -e "${RED}Invalid Option.${RESET}";;
 								esac
 						done
@@ -670,7 +673,7 @@ elif [[ "$FIRST" == "Notification Settings" ]]
 				while [[ $yn != y ]]
 					do
 						PS3="Please Choose the Mail Setting you Wish to Change: "
-						select EMAIL_SETTING in "SMTP Password" "SMTP URL" "Notification Email" "Sender Email" "Sender Name" All
+						select EMAIL_SETTING in "SMTP Password" "SMTP URL" "Notification Email" "Sender Email" "Sender Name" All Exit
 							do
 								case $EMAIL_SETTING in
 									["SMTP Password"]*) break;;
@@ -679,6 +682,7 @@ elif [[ "$FIRST" == "Notification Settings" ]]
 									["Sender Email"]*) break;;
 									["Sender Name"]*) break;;
 									["All"]*) break;;
+									["Exit"]*) exit 0;;
 															*) echo -e "${RED}Invalid Option.${RESET}";;
 								esac
 						done
@@ -1152,7 +1156,7 @@ elif [[ "$FIRST" == "General Settings" ]]
 										* ) echo -e "${RED}Please answer yes or no.${RESET}";;
 							esac
 				done
-				echo -e "${GREEN}Backup Location changed succesfully.${RESET}"
+				echo -e "${GREEN}Wasabi Settings changed succesfully.${RESET}"
 				exit 0
 		fi
 fi
