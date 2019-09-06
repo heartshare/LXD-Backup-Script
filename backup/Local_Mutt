@@ -570,6 +570,12 @@ set -x                               #Sends output to terminal
 mv "$TEMP"/restore.sh /etc/borg.d/
 chmod +x /etc/borg.d/restore.sh
 
+set -x                               #Sends output to terminal
+(wget -P "$TEMP" https://raw.githubusercontent.com/The-Inamati/LXD-Backup-Script/master/modify.sh)
+{ set +x; } 2>/dev/null              #Stops output to terminal and hides set+x from output
+mv "$TEMP"/modify.sh /etc/borg.d/
+chmod +x /etc/borg.d/modify.sh
+
 systemctl enable backup.timer
 systemctl enable backup.service
 systemctl start backup.timer
