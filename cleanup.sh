@@ -319,44 +319,6 @@ elif [[ "$WHAT" == Everything ]]
 						exit 1 # Exit with general error
 				fi
 		fi
-
-		FUSE='fuse'
-		echo "Checking to see if '$FUSE' is installed on your system."
-		printf "\n"
-		sleep 2s
-
-		dpkg -s $FUSE 2>/dev/null >/dev/null
-
-		if [ $? -ne 0 ]
-			# If success
-			then
-				echo "The '$FUSE' package is not installed on your system."
-				printf "\n"
-				sleep 2s
-			else
-				echo "The '$FUSE' package is installed on your system."
-				echo "Removing..."
-				set -x                               #Sends output to terminal
-				(apt purge $FUSE -y)
-				{ set +x; } 2>/dev/null              #Stops output to terminal and hides set+x from output
-				printf "\n"
-				sleep 2s
-				if [ $? -eq 0 ]
-					# If success
-					then
-						echo -e "${GREEN}The '$FUSE' package was removed successfully.${RESET}"
-						printf "\n"
-						sleep 2s
-					# If failure
-					else
-						echo -e "${RED}Couldn't remove '$FUSE' package.${RESET}"
-						printf "\n"
-						echo -e "${RED}Please try removing it manually.${RESET}"
-						printf "\n"
-						sleep 5s
-						exit 1 # Exit with general error
-				fi
-		fi
 		echo -e "${GREEN}Everything was removed successfully.${RESET}"
 		sleep 4s
 fi
