@@ -215,10 +215,10 @@ Beware that all compression algorithms will be at their maximum compression sett
 			do
 				# case statement to compare the first menu items
 				case $COMPRESSION in
-					[LZ4]*)  break;;
-					[ZLIB]*) break;;
-					[ZSTD]*) break;;
-					[LZMA]*) break;;
+					["LZ4"]*)  break;;
+					["ZLIB"]*) break;;
+					["ZSTD"]*) break;;
+					["LZMA"]*) break;;
 							*) echo "Invalid Option";;
 				esac
 		done
