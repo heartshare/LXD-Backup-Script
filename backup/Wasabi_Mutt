@@ -595,10 +595,10 @@ sleep 3s
 while true; do
         read -r -p "Please select hour for the automatic backup to run (24h format) $(echo $'\n> ')" HOUR
         case $HOUR in
-      (0[0-9] ) echo "Proceeding...";sleep 2s;break;;
-      (1[0-9] ) echo "Proceeding...";sleep 2s;break;;
-      (2[0-3] ) echo "Proceeding...";sleep 2s;break;;
-             * ) echo "Please input valid hour.";sleep 2s;;
+      (0[0-9] ) echo -e "${GREEN}Proceeding...${RESET}";sleep 2s;break;;
+      (1[0-9] ) echo -e "${GREEN}Proceeding...${RESET}";sleep 2s;break;;
+      (2[0-3] ) echo -e "${GREEN}Proceeding...${RESET}";sleep 2s;break;;
+             * ) echo -e "${RED}Please input valid hour.${RESET}";sleep 2s;;
     esac
 done
 
@@ -606,8 +606,8 @@ done
 while true; do
         read -r -p "Please select how many daily backups you wish to have $(echo $'\n> ')" DAILY
         case $DAILY in
-      ([0-7] ) echo "Proceeding...";sleep 2s;break;;
-           * ) echo "Please input valid number.";sleep 2s;;
+      ([0-7] ) echo -e "${GREEN}Proceeding...${RESET}";sleep 2s;break;;
+           * ) echo -e "${RED}Please input valid number.${RESET}";sleep 2s;;
     esac
 done
 
@@ -617,8 +617,8 @@ echo DAILY=\$"\"$DAILY\"" >> /etc/borg.d/env
 while true; do
         read -r -p "Please select how many weekly backups you wish to have $(echo $'\n> ')" WEEKLY
         case $WEEKLY in
-      ([0-4] ) echo "Proceeding...";sleep 2s;break;;
-             * ) echo "Please input valid hour.";sleep 2s;;
+      ([0-4] ) echo -e "${GREEN}Proceeding...${RESET}";sleep 2s;break;;
+             * ) echo -e "${RED}Please input valid hour.${RESET}";sleep 2s;;
     esac
 done
 
@@ -628,9 +628,9 @@ echo WEEKLY=\$"\"$WEEKLY\"" >> /etc/borg.d/env
 while true; do
         read -r -p "Please select how many monthly backups you wish to have $(echo $'\n> ')" MONTHLY
         case $MONTHLY in
-      ([0-9] ) echo "Proceeding...";sleep 2s;break;;
-      (1[0-2] ) echo "Proceeding...";sleep 2s;break;;
-             * ) echo "Please input valid hour.";sleep 2s;;
+      ([0-9] ) echo -e "${GREEN}Proceeding...${RESET}";sleep 2s;break;;
+      (1[0-2] ) echo -e "${GREEN}Proceeding...${RESET}";sleep 2s;break;;
+             * ) echo -e "${RED}Please input valid hour.${RESET}";sleep 2s;;
     esac
 done
 
