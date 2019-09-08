@@ -1164,7 +1164,7 @@ elif [[ "$FIRST" == "Wasabi Settings" ]]
 		fi
 		while true;
 			do
-				read -r -p "Do you wish to mount the bucket at boot?(yn)" yn
+				read -r -p "Do you wish to mount the bucket at boot?(y/n)" yn
 					case $yn in
 						[Yy]* ) echo "s3fs#$BUCKET $MNT fuse _netdev,allow_other,use_path_request_style,url=https://s3.$LOCATION.wasabisys.com/ 0 0" >> /etc/fstab;break;;
 						[Nn]* ) break;;
