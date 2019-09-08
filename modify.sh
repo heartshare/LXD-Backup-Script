@@ -36,7 +36,7 @@ while [[ $yn != y ]]
 			do
 				read -r -p "You chose $FIRST. Is this correct?(y/n)" yn
 					case $yn in
-						[Yy]* ) echo "${GREEN}Proceeding...${RESET}";sleep 3s;break;;
+						[Yy]* ) echo -e "${GREEN}Proceeding...${RESET}";sleep 3s;break;;
 						[Nn]* ) echo -e "${RED}Please choose again.${RESET}";sleep 3s;break;;
 							* ) echo -e "${RED}Please answer yes or no.${RESET}";;
 					esac
@@ -234,9 +234,9 @@ if [[ "$FIRST" == "Auto Backup Settings" ]]
 								#Prompt to define bucket region
 								while true
 									do
-										read -r -p "Please enter the region selected when creating the bucket [eu-central-1]: $(echo $'\n> ')" BUCKET_LOC
-										BUCKET_LOC=${BUCKET_LOC:-eu-central-1}                                                          #Used to provide default option
-										read -r -p "You selected '$BUCKET_LOC' is this correct?(y/n)" yn
+										read -r -p "Please enter the region selected when creating the bucket [eu-central-1]: $(echo $'\n> ')" LOCATION
+										LOCATION=${LOCATION:-eu-central-1}                                                          #Used to provide default option
+										read -r -p "You selected '$LOCATION' is this correct?(y/n)" yn
 											case $yn in
 												[Yy]* ) break;;
 												[Nn]* ) echo -e "${RED}Please try again:${RESET}";sleep 2s;;
@@ -244,13 +244,13 @@ if [[ "$FIRST" == "Auto Backup Settings" ]]
 											esac
 								done
 
-								sed -i '/BUCKET_LOC/d' /etc/borg.d/env
+								sed -i '/LOCATION/d' /etc/borg.d/env
 								if [ $? -ne 0 ]
 									then
 										echo -e "${RED}Can't change Wasabi parameters please check if your env file is still at /etc/borg.d/${RESET}"
 										exit 1
 								fi
-								echo BUCKET_LOC=\$"\"$BUCKET_LOC\"" >> /etc/borg.d/env
+								echo LOCATION=\$"\"$LOCATION\"" >> /etc/borg.d/env
 
 								#Prompt to define bucket name
 								while true
@@ -308,8 +308,8 @@ if [[ "$FIRST" == "Auto Backup Settings" ]]
 
 								#If unsure of what failed comment the first line and uncomment the second line to enable debug mode
 								echo "Mounting Wasabi Bucket"
-								s3fs "$BUCKET" "$MNT" -o passwd_file="${HOME}"/.passwd-s3fs -o url=https://s3."$BUCKET_LOC".wasabisys.com
-								#s3fs $BUCKET $MNT -o passwd_file=${HOME}/.passwd-s3fs -o url=https://s3.$BUCKET_LOC.wasabisys.com -o dbglevel=info -f -o rldbg
+								s3fs "$BUCKET" "$MNT" -o passwd_file="${HOME}"/.passwd-s3fs -o url=https://s3."$LOCATION".wasabisys.com
+								#s3fs $BUCKET $MNT -o passwd_file=${HOME}/.passwd-s3fs -o url=https://s3.$LOCATION.wasabisys.com -o dbglevel=info -f -o rldbg
 
 								echo "Verifying Mount"
 
@@ -334,7 +334,7 @@ if [[ "$FIRST" == "Auto Backup Settings" ]]
 									do
 										read -r -p "Do you wish to mount the bucket at boot?(yn)" yn
 											case $yn in
-											[Yy]* ) echo "s3fs#$BUCKET $MNT fuse _netdev,allow_other,use_path_request_style,url=https://s3.$BUCKET_LOC.wasabisys.com/ 0 0" >> /etc/fstab;break;;
+											[Yy]* ) echo "s3fs#$BUCKET $MNT fuse _netdev,allow_other,use_path_request_style,url=https://s3.$LOCATION.wasabisys.com/ 0 0" >> /etc/fstab;break;;
 											[Nn]* ) break;;
 												* ) echo -e "${RED}Please answer yes or no.${RESET}";;
 											esac
@@ -379,8 +379,8 @@ if [[ "$FIRST" == "Auto Backup Settings" ]]
 
 								#If unsure of what failed comment the first line and uncomment the second line to enable debug mode
 								echo "Mounting Wasabi Bucket"
-								s3fs "$BUCKET" "$MNT" -o passwd_file="${HOME}"/.passwd-s3fs -o url=https://s3."$BUCKET_LOC".wasabisys.com
-								#s3fs $BUCKET $MNT -o passwd_file=${HOME}/.passwd-s3fs -o url=https://s3.$BUCKET_LOC.wasabisys.com -o dbglevel=info -f -o rldbg
+								s3fs "$BUCKET" "$MNT" -o passwd_file="${HOME}"/.passwd-s3fs -o url=https://s3."$LOCATION".wasabisys.com
+								#s3fs $BUCKET $MNT -o passwd_file=${HOME}/.passwd-s3fs -o url=https://s3.$LOCATION.wasabisys.com -o dbglevel=info -f -o rldbg
 
 								echo "Verifying Mount"
 
@@ -405,7 +405,7 @@ if [[ "$FIRST" == "Auto Backup Settings" ]]
 									do
 										read -r -p "Do you wish to mount the bucket at boot?(yn)" yn
 											case $yn in
-												[Yy]* ) echo "s3fs#$BUCKET $MNT fuse _netdev,allow_other,use_path_request_style,url=https://s3.$BUCKET_LOC.wasabisys.com/ 0 0" >> /etc/fstab;break;;
+												[Yy]* ) echo "s3fs#$BUCKET $MNT fuse _netdev,allow_other,use_path_request_style,url=https://s3.$LOCATION.wasabisys.com/ 0 0" >> /etc/fstab;break;;
 												[Nn]* ) break;;
 														* ) echo -e "${RED}Please answer yes or no.${RESET}";;
 											esac
@@ -510,7 +510,7 @@ if [[ "$FIRST" == "Auto Backup Settings" ]]
 						exit 1
 				fi
 				echo COMPRESSION=\$"\"$COMPRESSION\"" >> /etc/borg.d/env
-				echo -e "${GREEN}Compression changed successfully.${RESET}"		
+				echo -e "${GREEN}Compression changed successfully.${RESET}"
 		elif [[ "$SECOND" == "Retention Settings" ]]
 			then
 				unset yn
@@ -723,7 +723,7 @@ elif [[ "$FIRST" == "Notification Settings" ]]
 						rm ~/.muttrc
 						set -x                               #Sends output to terminal
 						(wget -P "$TEMP" https://raw.githubusercontent.com/The-Inamati/LXD-Backup-Script/master/Mutt_Config_File)
-						{ set +x; } 2>/dev/null  
+						{ set +x; } 2>/dev/null
 						mv "$TEMP"/Mutt_Config_File ~/.muttrc
 						sed -i -e 's|${FROM_MAIL}|'"$FROM_MAIL"'|' -e "s/\${FROM_NAME}/$FROM_NAME/" -e 's|${SMTP_PASS}|'"$SMTP_PASS"'|' -e 's|${SMTP_URL}|'"$SMTP_URL"'|'  ~/.muttrc
 						echo -e "${GREEN}Your SMTP Password was changed successfully.${RESET}"
@@ -1046,131 +1046,132 @@ elif [[ "$FIRST" == "General Settings" ]]
 				fi
 				echo LXD=\$"\"$LXD\"" >> /etc/borg.d/env
 				echo -e "${GREEN}Container Location changed successfully.${RESET}"
-
+		fi
 elif [[ "$FIRST" == "Wasabi Settings" ]]
+	then
+		unset yn
+		echo "Checking for Mounted Buckets"
+		sleep 3s
+		while true
+			do
+				read -r -p "The bucket is mounted at $MNT. Do you wish to proceed?(y/n)" yn
+					case $yn in
+						[Yy]* ) echo -e "${GREEN}Proceeding...${RESET}";sleep 3s;break;;
+						[Nn]* ) echo -e "${RED}Terminating Script.${RESET}";sleep 3s;exit 1;;
+								* ) echo -e "${RED}Please answer yes or no.${RESET}";;
+					esac
+		done
+		mount -l | grep "${MNT}"
+		if [ $? -eq 0 ]
 			then
-				echo "Checking for Mounted Buckets"
-				sleep 3s
-				while true
-					do
-						read -r -p "The bucket is mounted at $MNT. Do you wish to proceed?(y/n)" yn
-							case $yn in
-								[Yy]* ) echo -e "${GREEN}Proceeding...${RESET}";sleep 3s;break;;
-								[Nn]* ) echo -e "${RED}Terminating Script.${RESET}";sleep 3s;exit 1;;
-									* ) echo -e "${RED}Please answer yes or no.${RESET}";;
-							esac
-				done
-				mount -l | grep "${MNT}"
-				if [ $? -eq 0 ]
-					then
-						umount "${MNT}"
-						sed -i '/${MNT}/d' /etc/fstab
-						if [ $? -ne 0 ]
-							then
-								echo -e "${RED}Error unmounting the bucket. Please try manually.${RESET}"
-								exit 1
-							else
-								echo -e "${GREEN}Bucket unmounted sucessfully.${RESET}"
-						fi
-				fi
-				while true
-					do
-						read -r -p "Please enter your Wasabi Access Key: $(echo $'\n> ')" ACCESS_KEY
-						read -r -p "You entered '$ACCESS_KEY' is this correct?(y/n)" yn
-							case $yn in
-								[Yy]* ) break;;
-								[Nn]* ) echo -e "${RED}Please try again:${RESET}";sleep 2s;;
-										* ) echo -e "${RED}Please answer yes or no.${RESET}";;
-							esac
-				done
-				sed -i '/ACCESS_KEY/d' /etc/borg.d/env
+				umount "${MNT}"
+				sed -i '/${MNT}/d' /etc/fstab
 				if [ $? -ne 0 ]
 					then
-						echo -e "${RED}Can't change Wasabi parameters please check if your env file is still at /etc/borg.d/${RESET}"
-						exit 1
-				fi
-				echo ACCESS_KEY=\$"\"$ACCESS_KEY\"" >> /etc/borg.d/env
-				while true
-					do
-						read -r -p "Please enter your Wasabi Secret Key: $(echo $'\n> ')" SECRET_KEY
-						read -r -p "You entered '$SECRET_KEY' is this correct?(y/n)" yn
-							case $yn in
-								[Yy]* ) break;;
-								[Nn]* ) echo -e "${RED}Please try again:${RESET}";sleep 2s;;
-										* ) echo -e "${RED}Please answer yes or no.${RESET}";;
-							esac
-				done
-				sed -i '/SECRET_KEY/d' /etc/borg.d/env
-				if [ $? -ne 0 ]
-					then
-						echo -e "${RED}Can't change Wasabi parameters please check if your env file is still at /etc/borg.d/${RESET}"
-						exit 1
-				fi
-				echo SECRET_KEY=\$"\"$SECRET_KEY\"" >> /etc/borg.d/env
-				while true
-					do
-						read -r -p "Please enter the region selected when creating the bucket [eu-central-1]: $(echo $'\n> ')" BUCKET_LOC
-						BUCKET_LOC=${BUCKET_LOC:-eu-central-1}                                                          #Used to provide default option
-						read -r -p "You selected '$BUCKET_LOC' is this correct?(y/n)" yn
-							case $yn in
-								[Yy]* ) break;;
-								[Nn]* ) echo -e "${RED}Please try again:${RESET}";sleep 2s;;
-										* ) echo -e "${RED}Please answer yes or no.${RESET}";;
-							esac
-				done
-				sed -i '/BUCKET_LOC/d' /etc/borg.d/env
-				if [ $? -ne 0 ]
-					then
-						echo -e "${RED}Can't change Wasabi parameters please check if your env file is still at /etc/borg.d/${RESET}"
-						exit 1
-				fi
-				echo BUCKET_LOC=\$"\"$BUCKET_LOC\"" >> /etc/borg.d/env
-				while true
-					do
-						read -r -p "Please enter the name of the bucket you created: $(echo $'\n> ')" BUCKET
-						read -r -p "You entered '$BUCKET' is this correct?(y/n)" yn
-							case $yn in
-								[Yy]* ) break;;
-								[Nn]* ) echo -e "${RED}Please try again:${RESET}";sleep 2s;;
-										* ) echo -e "${RED}Please answer yes or no.${RESET}";;
-							esac
-				done
-				sed -i '/BUCKET/d' /etc/borg.d/env
-				if [ $? -ne 0 ]
-					then
-						echo -e "${RED}Can't change Wasabi parameters please check if your env file is still at /etc/borg.d/${RESET}"
-						exit 1
-				fi
-				echo BUCKET=\$"\"$BUCKET\"" >> /etc/borg.d/env
-				rm ~/.passwd-s3fs 2>/dev/null >/dev/null
-				echo "$ACCESS_KEY":"$SECRET_KEY" > ~/.passwd-s3fs
-				chmod 600 ~/.passwd-s3fs
-				echo "Your keys were saved in ~/.passwd-s3fs"
-				echo "Mounting Wasabi Bucket"
-				s3fs "$BUCKET" "$MNT" -o passwd_file="${HOME}"/.passwd-s3fs -o url=https://s3."$BUCKET_LOC".wasabisys.com
-				echo "Verifying Mount"
-				mount -l | grep "$MNT"
-				if [ $? -ne 0 ]
-					then
-						echo -e "${RED}Mounting has failed. Please try doing it manually.${RESET}"
-						printf "\n"
-						sleep 3s
+						echo -e "${RED}Error unmounting the bucket. Please try manually.${RESET}"
 						exit 1
 					else
-						echo -e "${GREEN}Bucket mounted successfully.${RESET}"
-						printf "\n"
-						sleep 3s
+						echo -e "${GREEN}Bucket unmounted sucessfully.${RESET}"
 				fi
-				while true;
-					do
-						read -r -p "Do you wish to mount the bucket at boot?(yn)" yn
-							case $yn in
-								[Yy]* ) echo "s3fs#$BUCKET $MNT fuse _netdev,allow_other,use_path_request_style,url=https://s3.$BUCKET_LOC.wasabisys.com/ 0 0" >> /etc/fstab;break;;
-								[Nn]* ) break;;
-										* ) echo -e "${RED}Please answer yes or no.${RESET}";;
-							esac
-				done
-				echo -e "${GREEN}Wasabi Settings changed succesfully.${RESET}"
-				exit 0
 		fi
+		while true
+			do
+				read -r -p "Please enter your Wasabi Access Key: $(echo $'\n> ')" ACCESS_KEY
+				read -r -p "You entered '$ACCESS_KEY' is this correct?(y/n)" yn
+					case $yn in
+						[Yy]* ) break;;
+						[Nn]* ) echo -e "${RED}Please try again:${RESET}";sleep 2s;;
+								* ) echo -e "${RED}Please answer yes or no.${RESET}";;
+					esac
+		done
+		sed -i '/ACCESS_KEY/d' /etc/borg.d/env
+		if [ $? -ne 0 ]
+			then
+				echo -e "${RED}Can't change Wasabi parameters please check if your env file is still at /etc/borg.d/${RESET}"
+				exit 1
+		fi
+		echo ACCESS_KEY=\$"\"$ACCESS_KEY\"" >> /etc/borg.d/env
+		while true
+			do
+				read -r -p "Please enter your Wasabi Secret Key: $(echo $'\n> ')" SECRET_KEY
+				read -r -p "You entered '$SECRET_KEY' is this correct?(y/n)" yn
+					case $yn in
+						[Yy]* ) break;;
+						[Nn]* ) echo -e "${RED}Please try again:${RESET}";sleep 2s;;
+								* ) echo -e "${RED}Please answer yes or no.${RESET}";;
+					esac
+		done
+		sed -i '/SECRET_KEY/d' /etc/borg.d/env
+		if [ $? -ne 0 ]
+			then
+				echo -e "${RED}Can't change Wasabi parameters please check if your env file is still at /etc/borg.d/${RESET}"
+				exit 1
+		fi
+		echo SECRET_KEY=\$"\"$SECRET_KEY\"" >> /etc/borg.d/env
+		while true
+			do
+				read -r -p "Please enter the region selected when creating the bucket [eu-central-1]: $(echo $'\n> ')" LOCATION
+				LOCATION=${LOCATION:-eu-central-1}                                                          #Used to provide default option
+				read -r -p "You selected '$LOCATION' is this correct?(y/n)" yn
+					case $yn in
+						[Yy]* ) break;;
+						[Nn]* ) echo -e "${RED}Please try again:${RESET}";sleep 2s;;
+								* ) echo -e "${RED}Please answer yes or no.${RESET}";;
+					esac
+		done
+		sed -i '/LOCATION/d' /etc/borg.d/env
+		if [ $? -ne 0 ]
+			then
+				echo -e "${RED}Can't change Wasabi parameters please check if your env file is still at /etc/borg.d/${RESET}"
+				exit 1
+		fi
+		echo LOCATION=\$"\"$LOCATION\"" >> /etc/borg.d/env
+		while true
+			do
+				read -r -p "Please enter the name of the bucket you created: $(echo $'\n> ')" BUCKET
+				read -r -p "You entered '$BUCKET' is this correct?(y/n)" yn
+					case $yn in
+						[Yy]* ) break;;
+						[Nn]* ) echo -e "${RED}Please try again:${RESET}";sleep 2s;;
+								* ) echo -e "${RED}Please answer yes or no.${RESET}";;
+					esac
+		done
+		sed -i '/BUCKET/d' /etc/borg.d/env
+		if [ $? -ne 0 ]
+			then
+				echo -e "${RED}Can't change Wasabi parameters please check if your env file is still at /etc/borg.d/${RESET}"
+				exit 1
+		fi
+		echo BUCKET=\$"\"$BUCKET\"" >> /etc/borg.d/env
+		rm ~/.passwd-s3fs 2>/dev/null >/dev/null
+		echo "$ACCESS_KEY":"$SECRET_KEY" > ~/.passwd-s3fs
+		chmod 600 ~/.passwd-s3fs
+		echo "Your keys were saved in ~/.passwd-s3fs"
+		echo "Mounting Wasabi Bucket"
+		s3fs "$BUCKET" "$MNT" -o passwd_file="${HOME}"/.passwd-s3fs -o url=https://s3."$LOCATION".wasabisys.com
+		echo "Verifying Mount"
+		mount -l | grep "$MNT"
+		if [ $? -ne 0 ]
+			then
+				echo -e "${RED}Mounting has failed. Please try doing it manually.${RESET}"
+				printf "\n"
+				sleep 3s
+				exit 1
+			else
+				echo -e "${GREEN}Bucket mounted successfully.${RESET}"
+				printf "\n"
+				sleep 3s
+		fi
+		while true;
+			do
+				read -r -p "Do you wish to mount the bucket at boot?(yn)" yn
+					case $yn in
+						[Yy]* ) echo "s3fs#$BUCKET $MNT fuse _netdev,allow_other,use_path_request_style,url=https://s3.$LOCATION.wasabisys.com/ 0 0" >> /etc/fstab;break;;
+						[Nn]* ) break;;
+								* ) echo -e "${RED}Please answer yes or no.${RESET}";;
+					esac
+		done
+		echo -e "${GREEN}Wasabi Settings changed succesfully.${RESET}"
+		exit 0
 fi
+
