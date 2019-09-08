@@ -42,7 +42,7 @@ while [[ $yn != y ]]
 					esac
 		done
 done
-
+unset yn
 if [[ "$FIRST" == "Auto Backup Settings" ]]
 	then
 		while [[ $yn != y ]]
