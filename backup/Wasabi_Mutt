@@ -34,9 +34,9 @@ echo SECRET_KEY=\$"\"$SECRET_KEY\"" >> "$TEMP"/env
 #Prompt to define bucket region
 while true
 	do
-		read -r -p "Please enter the region selected when creating the bucket [eu-central-1]: $(echo $'\n> ')" BUCKET_LOC
-		BUCKET_LOC=${BUCKET_LOC:-eu-central-1}                                                          #Used to provide default option
-		read -r -p "You selected '$BUCKET_LOC' is this correct?(y/n)" yn
+		read -r -p "Please enter the region selected when creating the bucket [eu-central-1]: $(echo $'\n> ')" LOCATION
+		LOCATION=${LOCATION:-eu-central-1}                                                          #Used to provide default option
+		read -r -p "You selected '$LOCATION' is this correct?(y/n)" yn
 			case $yn in
 			[Yy]* ) break;;
 			[Nn]* ) echo -e "${RED}Please try again:${RESET}";sleep 2s;;
@@ -44,7 +44,7 @@ while true
 			esac
 done
 
-echo BUCKET_LOC=\$"\"$BUCKET_LOC\"" >> "$TEMP"/env
+echo LOCATION=\$"\"$LOCATION\"" >> "$TEMP"/env
 
 #Prompt to define bucket name
 while true
@@ -93,8 +93,8 @@ echo "Your keys were saved in ~/.passwd-s3fs"
 
 #If unsure of what failed comment the first line and uncomment the second line to enable debug mode
 echo "Mounting Wasabi Bucket"
-s3fs "$BUCKET" "$MNT" -o passwd_file="${HOME}"/.passwd-s3fs -o url=https://s3."$BUCKET_LOC".wasabisys.com
-#s3fs $BUCKET $MNT -o passwd_file=${HOME}/.passwd-s3fs -o url=https://s3.$BUCKET_LOC.wasabisys.com -o dbglevel=info -f -o rldbg
+s3fs "$BUCKET" "$MNT" -o passwd_file="${HOME}"/.passwd-s3fs -o url=https://s3."$LOCATION".wasabisys.com
+#s3fs $BUCKET $MNT -o passwd_file=${HOME}/.passwd-s3fs -o url=https://s3.$LOCATION.wasabisys.com -o dbglevel=info -f -o rldbg
 
 echo "Verifying Mount"
 
@@ -121,7 +121,7 @@ while true;
 	do
 		read -r -p "Do you wish to mount the bucket at boot?(yn)" yn
 			case $yn in
-			[Yy]* ) echo "s3fs#$BUCKET $MNT fuse _netdev,allow_other,use_path_request_style,url=https://s3.$BUCKET_LOC.wasabisys.com/ 0 0" >> /etc/fstab;break;;
+			[Yy]* ) echo "s3fs#$BUCKET $MNT fuse _netdev,allow_other,use_path_request_style,url=https://s3.$LOCATION.wasabisys.com/ 0 0" >> /etc/fstab;break;;
 			[Nn]* ) break;;
 				* ) echo -e "${RED}Please answer yes or no.${RESET}";;
 			esac
