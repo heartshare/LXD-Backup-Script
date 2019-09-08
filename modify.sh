@@ -78,8 +78,8 @@ if [[ "$FIRST" == "Auto Backup Settings" ]]
 						read -r -p "Please select the new hour for the automatic backup to run (24h format) $(echo $'\n> ')" HOUR
 							case $HOUR in
 								(0[0-9] ) echo -e "${GREEN}Proceeding...${RESET}";sleep 2s;break;;
-								(1[0-9] ) echo "${GREEN}Proceeding...${RESET}";sleep 2s;break;;
-								(2[0-3] ) echo "${GREEN}Proceeding...${RESET}";sleep 2s;break;;
+								(1[0-9] ) echo -e "${GREEN}Proceeding...${RESET}";sleep 2s;break;;
+								(2[0-3] ) echo -e "${GREEN}Proceeding...${RESET}";sleep 2s;break;;
 										* ) echo -e "${RED}Please input valid hour.${RESET}";sleep 2s;;
 							esac
 				done
@@ -442,6 +442,7 @@ if [[ "$FIRST" == "Auto Backup Settings" ]]
 						echo -e "${GREEN}Backup Location changed succesfully.${RESET}"
 						exit 0
 				fi
+		unset yn
 		elif [[ "$SECOND" == Compression ]]
 			then
 				echo "Your current compression setting is $COMPRESSION"
@@ -455,6 +456,7 @@ if [[ "$FIRST" == "Auto Backup Settings" ]]
 								* ) echo -e "${RED}Please answer yes or no.${RESET}";;
 							esac
 				done
+				unset yn
 				while [[ $yn != y ]]
 					do
 						# Parent menu items declared here
@@ -508,9 +510,10 @@ if [[ "$FIRST" == "Auto Backup Settings" ]]
 						exit 1
 				fi
 				echo COMPRESSION=\$"\"$COMPRESSION\"" >> /etc/borg.d/env
-				echo -e "${GREEN}Compression changed successfully.${RESET}"
+				echo -e "${GREEN}Compression changed successfully.${RESET}"		
 		elif [[ "$SECOND" == "Retention Settings" ]]
 			then
+				unset yn
 				while [[ $yn != y ]]
 					do
 						PS3="Please choose which retention setting you wish to change: "
@@ -720,8 +723,8 @@ elif [[ "$FIRST" == "Notification Settings" ]]
 						rm ~/.muttrc
 						set -x                               #Sends output to terminal
 						(wget -P "$TEMP" https://raw.githubusercontent.com/The-Inamati/LXD-Backup-Script/master/Mutt_Config_File)
+						{ set +x; } 2>/dev/null  
 						mv "$TEMP"/Mutt_Config_File ~/.muttrc
-						{ set +x; } 2>/dev/null              #Stops output to terminal and hides set+x from output
 						sed -i -e 's|${FROM_MAIL}|'"$FROM_MAIL"'|' -e "s/\${FROM_NAME}/$FROM_NAME/" -e 's|${SMTP_PASS}|'"$SMTP_PASS"'|' -e 's|${SMTP_URL}|'"$SMTP_URL"'|'  ~/.muttrc
 						echo -e "${GREEN}Your SMTP Password was changed successfully.${RESET}"
 						sleep 3s
@@ -749,8 +752,8 @@ elif [[ "$FIRST" == "Notification Settings" ]]
 						rm ~/.muttrc
 						set -x                               #Sends output to terminal
 						(wget -P "$TEMP" https://raw.githubusercontent.com/The-Inamati/LXD-Backup-Script/master/Mutt_Config_File)
-						mv "$TEMP"/Mutt_Config_File ~/.muttrc
 						{ set +x; } 2>/dev/null              #Stops output to terminal and hides set+x from output
+						mv "$TEMP"/Mutt_Config_File ~/.muttrc
 						sed -i -e 's|${FROM_MAIL}|'"$FROM_MAIL"'|' -e "s/\${FROM_NAME}/$FROM_NAME/" -e 's|${SMTP_PASS}|'"$SMTP_PASS"'|' -e 's|${SMTP_URL}|'"$SMTP_URL"'|'  ~/.muttrc
 						echo -e "${GREEN}Your SMTP URL was changed successfully.${RESET}"
 						sleep 3s
@@ -801,8 +804,8 @@ elif [[ "$FIRST" == "Notification Settings" ]]
 						rm ~/.muttrc
 						set -x                               #Sends output to terminal
 						(wget -P "$TEMP" https://raw.githubusercontent.com/The-Inamati/LXD-Backup-Script/master/Mutt_Config_File)
-						mv "$TEMP"/Mutt_Config_File ~/.muttrc
 						{ set +x; } 2>/dev/null              #Stops output to terminal and hides set+x from output
+						mv "$TEMP"/Mutt_Config_File ~/.muttrc
 						sed -i -e 's|${FROM_MAIL}|'"$FROM_MAIL"'|' -e "s/\${FROM_NAME}/$FROM_NAME/" -e 's|${SMTP_PASS}|'"$SMTP_PASS"'|' -e 's|${SMTP_URL}|'"$SMTP_URL"'|'  ~/.muttrc
 						echo -e "${GREEN}Your sender email was changed successfully.${RESET}"
 						sleep 3s
@@ -819,7 +822,7 @@ elif [[ "$FIRST" == "Notification Settings" ]]
 										* ) echo -e "${RED}Please answer yes or no.${RESET}";;
 									esac
 						done
-						sed -i '/FROM_MAIL/d' /etc/borg.d/env
+						sed -i '/FROM_NAME/d' /etc/borg.d/env
 						if [ $? -ne 0 ]
 							then
 								echo -e "${RED}Can't change mail parameters please check if your env file is still at /etc/borg.d/${RESET}"
@@ -829,8 +832,8 @@ elif [[ "$FIRST" == "Notification Settings" ]]
 						rm ~/.muttrc
 						set -x                               #Sends output to terminal
 						(wget -P "$TEMP" https://raw.githubusercontent.com/The-Inamati/LXD-Backup-Script/master/Mutt_Config_File)
-						mv "$TEMP"/Mutt_Config_File ~/.muttrc
 						{ set +x; } 2>/dev/null              #Stops output to terminal and hides set+x from output
+						mv "$TEMP"/Mutt_Config_File ~/.muttrc
 						sed -i -e 's|${FROM_MAIL}|'"$FROM_MAIL"'|' -e "s/\${FROM_NAME}/$FROM_NAME/" -e 's|${SMTP_PASS}|'"$SMTP_PASS"'|' -e 's|${SMTP_URL}|'"$SMTP_URL"'|'  ~/.muttrc
 						echo -e "${GREEN}Your sender name was changed successfully.${RESET}"
 						sleep 3s
@@ -915,8 +918,8 @@ elif [[ "$FIRST" == "Notification Settings" ]]
 
 						set -x                               #Sends output to terminal
 						(wget -P "$TEMP" https://raw.githubusercontent.com/The-Inamati/LXD-Backup-Script/master/Mutt_Config_File)
-						mv "$TEMP"/Mutt_Config_File ~/.muttrc
 						{ set +x; } 2>/dev/null              #Stops output to terminal and hides set+x from output
+						mv "$TEMP"/Mutt_Config_File ~/.muttrc
 						sed -i -e 's|${FROM_MAIL}|'"$FROM_MAIL"'|' -e "s/\${FROM_NAME}/$FROM_NAME/" -e 's|${SMTP_PASS}|'"$SMTP_PASS"'|' -e 's|${SMTP_URL}|'"$SMTP_URL"'|'  ~/.muttrc
 						echo -e "${GREEN}Your email settings were changed successfully.${RESET}"
 						sleep 3s
@@ -928,7 +931,7 @@ elif [[ "$FIRST" == "General Settings" ]]
 		while [[ $yn != y ]]
 			do
 				PS3="Please choose what you want to change: "
-				select FOURTH in "Borg Encryption Key" "Get Repo Keys" "Container Location" "Wasabi Settings" Exit
+				select FOURTH in "Borg Encryption Key" "Get Repo Keys" "Container Location" Exit
 					do
 						case $FOURTH in
 							["Borg Encryption Key"]*) break;;
@@ -1031,9 +1034,20 @@ elif [[ "$FIRST" == "General Settings" ]]
 								* ) echo -e "${RED}Please answer yes or no.${RESET}";;
 							esac
 				done
+				if [ "${LXD: -1}" == "/" ]  #Checks if there is a forward slash in the path and if there is removes it
+					then
+						LXD=${LXD%?}
+				fi
+				sed -i '/LXD/d' /etc/borg.d/env
+				if [ $? -ne 0 ]
+					then
+						echo -e "${RED}Can't change container location please check if your env file is still at /etc/borg.d/${RESET}"
+						exit 1
+				fi
+				echo LXD=\$"\"$LXD\"" >> /etc/borg.d/env
 				echo -e "${GREEN}Container Location changed successfully.${RESET}"
 
-		elif [[ "$FOURTH" == "Wasabi Settings" ]]
+elif [[ "$FIRST" == "Wasabi Settings" ]]
 			then
 				echo "Checking for Mounted Buckets"
 				sleep 3s
