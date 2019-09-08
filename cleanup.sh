@@ -4,7 +4,7 @@ clear
 
 #Check if running as root
 if [ "$EUID" -ne 0 ]
-	then 
+	then
 		echo -e "${RED}Please run this script as root${RESET}"
 		exit 1     # Exit with General Error
 fi
@@ -28,17 +28,17 @@ while [[ $yn != y ]]
 			do
 				# case statement to compare the first menu items
 				case $WHAT in
-					[Archive]*) sleep 2s;break;;
-					[Repository]*) sleep 2s;break;;
-					[EveryRepo]*) sleep 2s;break;;
-					[Everything]*) sleep 2s;break;;
+					["Archive"]*) sleep 2s;break;;
+					["Repository"]*) sleep 2s;break;;
+					["EveryRepo"]*) sleep 2s;break;;
+					["Everything"]*) sleep 2s;break;;
 								*) echo -e "${RED}Invalid Option${RESET}";;
 				esac
 		done
 		while true
 			do
 				echo "You selected $WHAT."
-				read -p "Are you sure? (y/n)" yn
+				read -r -p "Are you sure? (y/n)" yn
 					case $yn in
 						[Yy]* ) break;;
 						[Nn]* ) echo -e "${RED}Please choose again.${RESET}";sleep 2s;break;;
@@ -50,8 +50,8 @@ done
 unset yn
 # Parent menu items declared here
 if [[ "$WHAT" == Repository ]]
-	then 
-		readarray -t REPOS < <(ls ${MNT})
+	then
+		readarray -t REPOS < <(ls "${MNT}")
 		if [ -z "$REPOS" ]
 			then
 				echo -e "${RED}No repositories found${RESET}"
@@ -67,9 +67,9 @@ if [[ "$WHAT" == Repository ]]
 						[[ -n $REMOVE ]] || { echo -e "${RED}Invalid choice. Please try again.${RESET}" >&2; continue; }
 						break # valid choice was made; exit prompt.
 				done
-				while true 
+				while true
 					do
-						read -p "You are going to remove the repository $REMOVE. This can not be undone. Are you sure?(y/n)" yn
+						read -r -p "You are going to remove the repository $REMOVE. This can not be undone. Are you sure?(y/n)" yn
 						case $yn in
 							[Yy]* ) break;;
 							[Nn]* ) break;;
@@ -77,14 +77,14 @@ if [[ "$WHAT" == Repository ]]
 						esac
 				done
 			done
-				borg delete ${MNT}/$REMOVE
+				borg delete "${MNT}"/"$REMOVE"
 				echo -e "${GREEN}The repository was removed successfully.${RESET}"
 				sleep 5s
 				exit 0
-				
+
 elif [[ "$WHAT" == Archive ]]
 	then
-		readarray -t REPOS < <(ls ${MNT})
+		readarray -t REPOS < <(ls "${MNT}")
 		if [ -z "$REPOS" ]
 			then
 				echo -e "${RED}No repositories found${RESET}"
@@ -100,15 +100,15 @@ elif [[ "$WHAT" == Archive ]]
 						[[ -n $REMOVE ]] || { echo -e "${RED}Invalid choice. Please try again.${RESET}" >&2; continue; }
 						break # valid choice was made; exit prompt.
 				done
-				read -p "You selected the repository $REMOVE. Are you sure?(y/n)" yn
+				read -r -p "You selected the repository $REMOVE. Are you sure?(y/n)" yn
 						case $yn in
 							[Yy]* ) break;;
 							[Nn]* ) echo -e "${RED}Please choose again${RESET}";sleep 2s;;
 								* ) echo -e "${RED}Please answer yes or no.${RESET}";sleep 2s;;
 						esac
 		done
-		unset yn				
-		readarray -t ARCHIVES < <(borg list ${MNT}/$REMOVE)
+		unset yn
+		readarray -t ARCHIVES < <(borg list "${MNT}"/"$REMOVE")
 		if [ -z "$ARCHIVES" ]
 			then
 				echo -e "${RED}No archives found on the repository $REMOVE${RESET}"
@@ -123,20 +123,20 @@ elif [[ "$WHAT" == Archive ]]
 						[[ -n $ARCHIVE ]] || { echo -e "${RED}Invalid choice. Please try again.${RESET}" >&2; continue; }
 						break # valid choice was made; exit prompt.
 				done
-				read -p "You selected the archive $ARCHIVE. Are you sure?(y/n)" yn
+				read -r -p "You selected the archive $ARCHIVE. Are you sure?(y/n)" yn
 						case $yn in
 							[Yy]* ) break;;
 							[Nn]* ) echo -e "${RED}Please choose again${RESET}";sleep 2s;;
 								* ) echo -e "${RED}Please answer yes or no.${RESET}";sleep 2s;;
 						esac
 			done
-				ARCHIVE=$(echo $ARCHIVE | cut -d' ' -f1)
-				borg delete ${MNT}/$REMOVE::$ARCHIVE
+				ARCHIVE=$(echo "$ARCHIVE" | cut -d' ' -f1)
+				borg delete "${MNT}"/"$REMOVE"::"$ARCHIVE"
 				echo -e "${GREEN}The archive was removed successfully.${RESET}"
 				sleep 5s
 				exit 0
-				
-elif [[ "$WHAT" == EveryRepo ]] 
+
+elif [[ "$WHAT" == EveryRepo ]]
 	then
 		echo -e "${RED}-----------------------------------------------------------${RESET}"
 		echo -e "${RED}WARNING: This will remove all your backups and repositories${RESET}"
@@ -145,18 +145,18 @@ elif [[ "$WHAT" == EveryRepo ]]
 		printf "\n"
 		while [[ $yn != y ]]
 			do
-				read -p "Do you wish to continue? (y/n)" yn
+				read -r -p "Do you wish to continue? (y/n)" yn
 				case $yn in
 					[Yy]* ) break;;
 					[Nn]* ) echo -e "${RED}Terminating Script.${RESET}";sleep 2s;exit 1;;
 						* ) echo -e "${RED}Please answer yes or no.${RESET}";;
 				esac
 			done
-		
-		cd ${MNT}
+
+		cd "${MNT}" || exit
 		for i in *
 			do
-				borg delete ${MNT}/$i
+				borg delete "${MNT}"/"$i"
 		done
 		echo -e "${GREEN}All Repositories have been removed.${RESET}"
 		sleep 5s
@@ -171,17 +171,17 @@ elif [[ "$WHAT" == Everything ]]
 		printf "\n"
 		while [[ $yn != y ]]
 			do
-				read -p "Do you wish to continue? (y/n)" yn
+				read -r -p "Do you wish to continue? (y/n)" yn
 				case $yn in
 					[Yy]* ) break;;
 					[Nn]* ) echo -e "${RED}Terminating Script.${RESET}";sleep 2s;exit 1;;
 						* ) echo -e "${RED}Please answer yes or no.${RESET}";;
 				esac
 			done
-		cd ${MNT}
+		cd "${MNT}" || exit
 		for i in *
 			do
-				borg delete ${MNT}/$i
+				borg delete "${MNT}"/"$i"
 		done
 		echo -e "${GREEN}All Repositories have been removed.${RESET}"
 		sleep 3s
@@ -190,21 +190,21 @@ elif [[ "$WHAT" == Everything ]]
 		rm /etc/systemd/system/backup*
 		rm -rf /etc/borg.d
 		rm ~/.passwd-s3fs 2>/dev/null >/dev/null
-		
-		while true 
+
+		while true
 			do
-				read -p "Do you wish to remove packages installed by the script?(y/n)" yn
+				read -r -p "Do you wish to remove packages installed by the script?(y/n)" yn
 				case $yn in
 					[Yy]* ) echo -e "${RED}Removing installed packages.${RESET}"; break;;
 					[Nn]* ) echo -e "${GREEN}Everything was removed successfully.${RESET}";sleep 4s;exit 1;;
 						* ) echo -e "${RED}Please answer yes or no.${RESET}";;
-			esac          
+			esac
 		done
-		
-		
+
+
 		# Removal of installed packages
-		
-		BORG='borgbackup'     
+
+		BORG='borgbackup'
 		echo "Checking to see if '$BORG' is installed on your system."
 		printf "\n"
 		sleep 2s
@@ -221,7 +221,7 @@ elif [[ "$WHAT" == Everything ]]
 				echo "The '$BORG' package is installed on your system."
 				echo "Removing..."
 				set -x                               #Sends output to terminal
-				(apt purge $BORG -y) 
+				(apt purge $BORG -y)
 				{ set +x; } 2>/dev/null              #Stops output to terminal and hides set+x from output
 				printf "\n"
 				sleep 2s
@@ -243,8 +243,8 @@ elif [[ "$WHAT" == Everything ]]
 		fi
 
 		printf "\n"
-		
-		MUTT='mutt'     
+
+		MUTT='mutt'
 		echo "Checking to see if '$MUTT' is installed on your system."
 		printf "\n"
 		sleep 2s
@@ -261,7 +261,7 @@ elif [[ "$WHAT" == Everything ]]
 				echo "The '$MUTT' package is installed on your system."
 				echo "Removing..."
 				set -x                               #Sends output to terminal
-				(apt purge $MUTT -y) 
+				(apt purge $MUTT -y)
 				{ set +x; } 2>/dev/null              #Stops output to terminal and hides set+x from output
 				printf "\n"
 				sleep 2s
@@ -281,8 +281,8 @@ elif [[ "$WHAT" == Everything ]]
 						exit 1 # Exit with general error
 				fi
 		fi
-		
-		S3FS='s3fs'     
+
+		S3FS='s3fs'
 		echo "Checking to see if '$S3FS' is installed on your system."
 		printf "\n"
 		sleep 2s
@@ -299,7 +299,7 @@ elif [[ "$WHAT" == Everything ]]
 				echo "The '$S3FS' package is installed on your system."
 				echo "Removing..."
 				set -x                               #Sends output to terminal
-				(apt purge $S3FS -y) 
+				(apt purge $S3FS -y)
 				{ set +x; } 2>/dev/null              #Stops output to terminal and hides set+x from output
 				printf "\n"
 				sleep 2s
@@ -312,44 +312,6 @@ elif [[ "$WHAT" == Everything ]]
 					# If failure
 					else
 						echo -e "${RED}Couldn't remove '$S3FS' package.${RESET}"
-						printf "\n"
-						echo -e "${RED}Please try removing it manually.${RESET}"
-						printf "\n"
-						sleep 5s
-						exit 1 # Exit with general error
-				fi
-		fi
-		
-		FUSE='fuse'     
-		echo "Checking to see if '$FUSE' is installed on your system."
-		printf "\n"
-		sleep 2s
-
-		dpkg -s $FUSE 2>/dev/null >/dev/null
-
-		if [ $? -ne 0 ]
-			# If success
-			then
-				echo "The '$FUSE' package is not installed on your system."
-				printf "\n"
-				sleep 2s
-			else
-				echo "The '$FUSE' package is installed on your system."
-				echo "Removing..."
-				set -x                               #Sends output to terminal
-				(apt purge $FUSE -y) 
-				{ set +x; } 2>/dev/null              #Stops output to terminal and hides set+x from output
-				printf "\n"
-				sleep 2s
-				if [ $? -eq 0 ]
-					# If success
-					then
-						echo -e "${GREEN}The '$FUSE' package was removed successfully.${RESET}"
-						printf "\n"
-						sleep 2s
-					# If failure
-					else
-						echo -e "${RED}Couldn't remove '$FUSE' package.${RESET}"
 						printf "\n"
 						echo -e "${RED}Please try removing it manually.${RESET}"
 						printf "\n"

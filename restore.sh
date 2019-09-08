@@ -4,7 +4,7 @@ clear
 
 #Check if running as root
 if [ "$EUID" -ne 0 ]
-	then 
+	then
 		echo -e "${RED}Please run this script as root${RESET}"
 		exit 1     # Exit with General Error
 fi
@@ -23,7 +23,7 @@ RESET='\e[0m'
 RED='\e[31m'
 GREEN='\e[32m'
 
-readarray -t REPOS < <(ls ${MNT})
+readarray -t REPOS < <(ls "${MNT}")
 if [ -z "$REPOS" ]
 	then
 		echo -e "${RED}No repositories found${RESET}"
@@ -41,18 +41,18 @@ while [[ $yn != y ]]
 				break # valid choice was made; exit prompt.
 		done
 
-		read -p "You selected the repository $RESTORE. Are you sure?(y/n)" yn
+		read -r -p "You selected the repository $RESTORE. Are you sure?(y/n)" yn
 			case $yn in
 				[Yy]* ) break;;
 				[Nn]* ) echo -e "${RED}Please choose again${RESET}";sleep 2s;;
 					* ) echo -e "${RED}Please answer yes or no.${RESET}";sleep 2s;;
 			esac
 done
-		
-unset yn				
 
-readarray -t ARCHIVES < <(borg list ${MNT}/$RESTORE)
-		
+unset yn
+
+readarray -t ARCHIVES < <(borg list "${MNT}"/"$RESTORE")
+
 if [ -z "$ARCHIVES" ]
 	then
 		echo -e "${RED}No archives found on the repository $REMOVE${RESET}"
@@ -68,7 +68,7 @@ while [[ $yn != y ]]
 				[[ -n $ARCHIVE ]] || { echo -e "${RED}Invalid choice. Please try again.${RESET}" >&2; continue; }
 				break # valid choice was made; exit prompt.
 		done
-		read -p "You selected the archive $ARCHIVE. Are you sure?(y/n)" yn
+		read -r -p "You selected the archive $ARCHIVE. Are you sure?(y/n)" yn
 			case $yn in
 				[Yy]* ) break;;
 				[Nn]* ) echo -e "${RED}Please choose again${RESET}";sleep 2s;;
@@ -77,11 +77,11 @@ while [[ $yn != y ]]
 done
 
 mkdir /restore
-		
-cd /restore
-		
-ARCHIVE=$(echo $ARCHIVE | cut -d' ' -f1)
-borg extract -p ${MNT}/$RESTORE::$ARCHIVE
+
+cd /restore || exit
+
+ARCHIVE=$(echo "$ARCHIVE" | cut -d' ' -f1)
+borg extract -p "${MNT}"/"$RESTORE"::"$ARCHIVE"
 
 echo -e "${GREEN}The archive was extracted successfully.${RESET}"
 sleep 3s
@@ -89,20 +89,20 @@ sleep 3s
 echo "Importing Container"
 echo "-------------------"
 
-cd /restore/tmp
+cd /restore/tmp || exit
 
 echo "Importing Image to LXD"
 
 for i in *
 	do
 		#Import image to local image list
-		lxc image import $i --alias restore-$RESTORE
+		lxc image import "$i" --alias restore-"$RESTORE"
 
-		while true 
+		while true
 			do
-				read -p "Please choose a name for the container you want to restore. Default is Repo name. [$RESTORE]: `echo $'\n> '`" NAME
+				read -r -p "Please choose a name for the container you want to restore. Default is Repo name. [$RESTORE]: $(echo $'\n> ')" NAME
 				NAME=${NAME:-$RESTORE}                                                          #Used to provide default option
-				read -p "You selected '$NAME' is this correct?(y/n)" yn
+				read -r -p "You selected '$NAME' is this correct?(y/n)" yn
 					case $yn in
 						[Yy]* ) break;;
 						[Nn]* ) echo "Please try again:";sleep 2s;;
@@ -110,14 +110,14 @@ for i in *
 					esac
 		done
 done
-		
+
 #launch container using image
 echo "Restauring Container"
-lxc launch restore-$NAME mail
+lxc launch restore-"$RESTORE" "$NAME"
 
 
 echo "Checking for Container"
-lxc list | grep $NAME
+lxc list | grep "$NAME"
 
 if [ $? -ne 0 ]
 	then
@@ -132,5 +132,5 @@ if [ $? -ne 0 ]
 fi
 
 echo "Removing Leftovers"
-lxc image delete restore-$NAME
+lxc image delete restore-"$RESTORE"
 rm -rf /restore

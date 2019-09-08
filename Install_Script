@@ -19,9 +19,9 @@ clear
 #Script Introduction
 echo "Hi,
 This script was designed to make LXD backups easier to implement and mantain.
-	
+
 My only work was the script itself as it is just an integration of several tools developed by other people.
-			 	 
+
 Depending on your choices the following software may be installed:
 
 Mutt             Used for sending email notifications
@@ -29,13 +29,13 @@ Borgbackup       Used for backing up files with encryption, retention and dedupl
 Wget             Needed to get the cuswtomized borgmatic scripts
 S3FS+Fuse        Needed to mount S3 bucket as FS
 
-			 
+
 In addition this script will also create, move and delete the files and folders it needs to implement the backup solution.
-			 
+
 The script was designed to not make unnecessary changes and in theory should not impact a production system."
 
 while true; do
-	read -p "Taking all this into account do you wish to proceed?(y/n)" yn
+	read -r -p "Taking all this into account do you wish to proceed?(y/n)" yn
 	case $yn in
     [Yy]* ) echo -e "${GREEN}Proceeding...${RESET}";sleep 5s;break;;
     [Nn]* ) exit 1;;
@@ -48,7 +48,7 @@ clear
 
 #Check if running as root
 if [ "$EUID" -ne 0 ]
-	then 
+	then
 		echo -e "${RED}Please run this script as root${RESET}"
 		exit 1     # Exit with General Error
 	fi
@@ -68,10 +68,10 @@ if [ $? -ne 0 ]
 		echo -e "${RED}Please verify the script for compatibility issues or comment these lines.${RESET}"
 		sleep 3s
 		exit 1     # Exit with General Error
-	else 
+	else
 		echo -e "${GREEN}Ubuntu Version 18.04 confirmed.${RESET}"
 		sleep 2s
-  
+
 	fi
 
 printf "\n"
@@ -92,7 +92,7 @@ echo "Checking Connectivity"
 echo "---------------------"
 sleep 2s
 
-if ping -q -c 1 -W 1 8.8.8.8 >/dev/null; 
+if ping -q -c 1 -W 1 8.8.8.8 >/dev/null;
 	then
 		echo -e "${GREEN}IPv4 is up.${RESET}"
 	else
@@ -103,7 +103,7 @@ if ping -q -c 1 -W 1 8.8.8.8 >/dev/null;
 	fi
 
 
-if ping -q -c 1 -W 1 google.com >/dev/null; 
+if ping -q -c 1 -W 1 google.com >/dev/null;
 	then
 		echo -e "${GREEN}Name resolution is working${RESET}"
 	else
@@ -118,17 +118,17 @@ set -x                               #Sends output to terminal
 (apt update
 apt upgrade -y
 apt autoremove -y
-apt autoclean -y) 
+apt autoclean -y)
 { set +x; } 2>/dev/null              #Stops output to terminal and hides set+x from output
 
 printf "\n"
 
 #Prompt to define temporary location
-while true 
+while true
 	do
-		read -p "Please define a temporary location [/tmp]: `echo $'\n> '`" TEMP
+		read -r -p "Please define a temporary location [/tmp]: $(echo $'\n> ')" TEMP
         TEMP=${TEMP:-/tmp}                                                          #Used to provide default option
-			read -p "You selected '$TEMP' is this correct?(y/n)" yn
+			read -r -p "You selected '$TEMP' is this correct?(y/n)" yn
 			case $yn in
             [Yy]* ) break;;
             [Nn]* ) echo "Please try again:";sleep 2s;;
@@ -138,26 +138,26 @@ done
 
 
 
-exec > >(tee -i $TEMP/backup_log_$BEGIN.txt)  #This file will log everything
+exec > >(tee -i "$TEMP"/backup_log_"$BEGIN".txt)  #This file will log everything
 exec 2>&1
 
-mkdir $TEMP 2>/dev/null >/dev/null
+mkdir "$TEMP" 2>/dev/null >/dev/null
 
 
 if [ "${TEMP: -1}" == "/" ]  #Checks if there is a forward slash in the path and if there is removes it
-	then 
+	then
 		TEMP=${TEMP%?}
 	fi
 
-echo TEMP=\$"\"$TEMP\"" >> $TEMP/env
-	
+echo TEMP=\$"\"$TEMP\"" >> "$TEMP"/env
+
 echo "Verifying if needed packages are installed."
 echo "-------------------------------------------"
 sleep 5s
 
 # Checking to see if the Borg package is installed on your system
 # Used for backing up the files and their deduplication
-BORG='borgbackup'     
+BORG='borgbackup'
 echo "Checking to see if '$BORG' is installed on your system."
 printf "\n"
 sleep 2s
@@ -172,9 +172,8 @@ if [ $? -ne 0 ]
 		echo "Package '$BORG' will now be installed."
 		printf "\n"
 		sleep 2s
-		INSTALL=$
 		set -x                               #Sends output to terminal
-		(apt install $BORG -y) 
+		(apt install $BORG -y)
 		{ set +x; } 2>/dev/null              #Stops output to terminal and hides set+x from output
 
 			if [ $? -eq 0 ]
@@ -203,7 +202,7 @@ printf "\n"
 
 # Checking to see if the WGET package manager is installed on your system
 # Used to install wget
-WGET='wget'     
+WGET='wget'
 echo "Checking to see if '$WGET' is installed on your system."
 printf "\n"
 sleep 1s
@@ -218,9 +217,8 @@ if [ $? -ne 0 ]
 		echo "Package '$WGET' will now be installed."
 		printf "\n"
 		sleep 3s
-		INSTALL=$
 		set -x                               #Sends output to terminal
-		(apt install $WGET -y) 
+		(apt install $WGET -y)
 		{ set +x; } 2>/dev/null              #Stops output to terminal and hides set+x from output
 
 			if [ $? -eq 0 ]
@@ -258,13 +256,13 @@ sleep 2s
 clear
 
 #Specify containers location
-while true 
+while true
 	do
-		read -p "Please enter the location of your LXD containers [/var/lib/lxd/containers]: `echo $'\n> '`" LXD
+		read -r -p "Please enter the location of your LXD containers [/var/lib/lxd/containers]: $(echo $'\n> ')" LXD
 		LXD=${LXD:-/var/lib/lxd/containers}                                                          #Used to provide default option
-		read -p "You selected '$LXD' is this correct?(y/n)" yn
+		read -r -p "You selected '$LXD' is this correct?(y/n)" yn
 			case $yn in
-			[Yy]* ) cd $LXD;
+			[Yy]* ) cd "$LXD" || exit;
 						if [ $? -ne 0 ]
 							# If success
 							then
@@ -279,15 +277,15 @@ while true
 					break;;
 			[Nn]* ) echo "Please try again:";sleep 2s;;
 				* ) echo "Please answer yes or no.";;
-			esac          
+			esac
 done
 
 if [ "${LXD: -1}" == "/" ]  #Checks if there is a forward slash in the path and if there is removes it
-	then 
+	then
 		LXD=${LXD%?}
-	fi  
-  
-echo LXD=\$"\"$LXD\"" >> $TEMP/env
+	fi
+
+echo LXD=\$"\"$LXD\"" >> "$TEMP"/env
 
 ####-Definition of backup and notification settings
 
@@ -305,9 +303,9 @@ while [[ $yn != y ]]
 				do
 					# case statement to compare the first menu items
 					case $BACKUP in
-						[Local]*) echo "You selected Local";sleep 2s;break;;
-						[Wasabi]*) echo "You selected Wasabi";sleep 2s;break;;
-						[SSH]*) echo "You selected SSH"; echo -e "${RED}You will need a private SSH key for this${RESET}"; sleep 5s;break;;
+						["Local"]*) echo "You selected Local";sleep 2s;break;;
+						["Wasabi"]*) echo "You selected Wasabi";sleep 2s;break;;
+						["SSH"]*) echo "You selected SSH"; echo -e "${RED}You will need a private SSH key for this${RESET}"; sleep 5s;break;;
 								*) echo "Invalid Option";;
 					esac
 			done
@@ -321,7 +319,7 @@ while [[ $yn != y ]]
 				do
 					# case statement to compare the first menu items
 					case $NOTIF in
-						[Mutt]*) echo "You selected Mutt"; sleep 2s;break;;
+						["Mutt"]*) echo "You selected Mutt"; sleep 2s;break;;
 								*) echo "Invalid Option";;
 					esac
 			done
@@ -332,7 +330,7 @@ while [[ $yn != y ]]
 			while true
 				do
 					echo "You selected $BACKUP and $NOTIF."
-					read -p "Are these options correct? (y/n)" yn
+					read -r -p "Are these options correct? (y/n)" yn
 						case $yn in
 							[Yy]* ) break;;
 							[Nn]* ) echo "Please choose again.";sleep 2s;break;;
@@ -343,11 +341,11 @@ done
 
 #Clear the terminal
 clear
-cd $TEMP
+cd "$TEMP" || exit
 DIR=$(dirname "$0") #Used to get path where this script is being executed
 
 set -x                               #Sends output to terminal
-wget -P $DIR https://raw.githubusercontent.com/The-Inamati/LXD-Backup-Script/master/backup/${BACKUP}_${NOTIF}
+wget -P "$DIR" https://raw.githubusercontent.com/The-Inamati/LXD-Backup-Script/master/backup/${BACKUP}_${NOTIF}
 { set +x; } 2>/dev/null              #Stops output to terminal and hides set+x from output
 
 source ${BACKUP}_${NOTIF}

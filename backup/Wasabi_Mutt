@@ -1,12 +1,10 @@
 #!/usr/bin/env bash
 
-######--Backup Preparation--######
-
 #Prompt to define wasabi access key
-while true 
+while true
 	do
-		read -p "Please enter your Wasabi Access Key: `echo $'\n> '`" ACCESS_KEY
-		read -p "You entered '$ACCESS_KEY' is this correct?(y/n)" yn
+		read -r -p "Please enter your Wasabi Access Key: $(echo $'\n> ')" ACCESS_KEY
+		read -r -p "You entered '$ACCESS_KEY' is this correct?(y/n)" yn
 			case $yn in
 			[Yy]* ) break;;
 			[Nn]* ) echo -e "${RED}Please try again:${RESET}";sleep 2s;;
@@ -15,13 +13,13 @@ while true
 done
 
 
-echo ACCESS_KEY=\$"\"$ACCESS_KEY\"" >> $TEMP/env
+echo ACCESS_KEY=\$"\"$ACCESS_KEY\"" >> "$TEMP"/env
 
 #Prompt to define wasabi secret key
-while true 
+while true
 	do
-		read -p "Please enter your Wasabi Secret Key: `echo $'\n> '`" SECRET_KEY
-		read -p "You entered '$SECRET_KEY' is this correct?(y/n)" yn
+		read -r -p "Please enter your Wasabi Secret Key: $(echo $'\n> ')" SECRET_KEY
+		read -r -p "You entered '$SECRET_KEY' is this correct?(y/n)" yn
 			case $yn in
 			[Yy]* ) break;;
 			[Nn]* ) echo -e "${RED}Please try again:${RESET}";sleep 2s;;
@@ -29,14 +27,14 @@ while true
 			esac
 done
 
-echo SECRET_KEY=\$"\"$SECRET_KEY\"" >> $TEMP/env
+echo SECRET_KEY=\$"\"$SECRET_KEY\"" >> "$TEMP"/env
 
 #Prompt to define bucket region
-while true 
+while true
 	do
-		read -p "Please enter the region selected when creating the bucket [eu-central-1]: `echo $'\n> '`" BUCKET_LOC
-		BUCKET_LOC=${BUCKET_LOC:-eu-central-1}                                                          #Used to provide default option
-		read -p "You selected '$BUCKET_LOC' is this correct?(y/n)" yn
+		read -r -p "Please enter the region selected when creating the bucket [eu-central-1]: $(echo $'\n> ')" LOCATION
+		LOCATION=${LOCATION:-eu-central-1}                                                          #Used to provide default option
+		read -r -p "You selected '$LOCATION' is this correct?(y/n)" yn
 			case $yn in
 			[Yy]* ) break;;
 			[Nn]* ) echo -e "${RED}Please try again:${RESET}";sleep 2s;;
@@ -44,13 +42,13 @@ while true
 			esac
 done
 
-echo BUCKET_LOC=\$"\"$BUCKET_LOC\"" >> $TEMP/env
-				
+echo LOCATION=\$"\"$LOCATION\"" >> "$TEMP"/env
+
 #Prompt to define bucket name
-while true 
+while true
 	do
-		read -p "Please enter the name of the bucket you created: `echo $'\n> '`" BUCKET
-		read -p "You entered '$BUCKET' is this correct?(y/n)" yn
+		read -r -p "Please enter the name of the bucket you created: $(echo $'\n> ')" BUCKET
+		read -r -p "You entered '$BUCKET' is this correct?(y/n)" yn
 			case $yn in
 			[Yy]* ) break;;
 			[Nn]* ) echo -e "${RED}Please try again:${RESET}";sleep 2s;;
@@ -58,14 +56,14 @@ while true
 			esac
 done
 
-echo BUCKET=\$"\"$BUCKET\"" >> $TEMP/env
+echo BUCKET=\$"\"$BUCKET\"" >> "$TEMP"/env
 
 #Prompt to define repo location
-while true 
+while true
 	do
-		read -p "Please enter a location for the backup repository. Your S3 storage will be mounted to this location. The folder has to be empty. If it does not exist it will be created automatically. [/BACKUP]: `echo $'\n> '`" MNT
+		read -r -p "Please enter a location for the backup repository. Your S3 storage will be mounted to this location. The folder has to be empty. If it does not exist it will be created automatically. [/BACKUP]: $(echo $'\n> ')" MNT
 		MNT=${MNT:-/BACKUP}                                                          #Used to provide default option
-		read -p "You selected '$MNT' is this correct?(y/n)" yn
+		read -r -p "You selected '$MNT' is this correct?(y/n)" yn
 			case $yn in
 			[Yy]* ) break;;
 			[Nn]* ) echo -e "${RED}Please try again:${RESET}";sleep 2s;;
@@ -73,32 +71,32 @@ while true
 			esac
 done
 
-mkdir $MNT 2>/dev/null >/dev/null
+mkdir "$MNT" 2>/dev/null >/dev/null
 mkdir /var/log/backup/
-chmod 777 $MNT	
-	
+chmod 777 "$MNT"
+
 if [ "${MNT: -1}" == "/" ]  #Checks if there is a forward slash in the path and if there is removes it
-	then 
+	then
 		MNT=${MNT%?}
-	fi				
-	
-echo MNT=\$"\"$MNT\"" >> $TEMP/env
-	
+	fi
+
+echo MNT=\$"\"$MNT\"" >> "$TEMP"/env
+
 echo "Installing S3FS and Fuse"
 sleep 2s
-apt install s3fs fuse -y 
-echo $ACCESS_KEY:$SECRET_KEY > ~/.passwd-s3fs
+apt install s3fs fuse -y
+echo "$ACCESS_KEY":"$SECRET_KEY" > ~/.passwd-s3fs
 chmod 600 ~/.passwd-s3fs
 echo "Your keys were saved in ~/.passwd-s3fs"
 
 #If unsure of what failed comment the first line and uncomment the second line to enable debug mode
 echo "Mounting Wasabi Bucket"
-s3fs $BUCKET $MNT -o passwd_file=${HOME}/.passwd-s3fs -o url=https://s3.$BUCKET_LOC.wasabisys.com
-#s3fs $BUCKET $MNT -o passwd_file=${HOME}/.passwd-s3fs -o url=https://s3.$BUCKET_LOC.wasabisys.com -o dbglevel=info -f -o rldbg
+s3fs "$BUCKET" "$MNT" -o passwd_file="${HOME}"/.passwd-s3fs -o url=https://s3."$LOCATION".wasabisys.com
+#s3fs $BUCKET $MNT -o passwd_file=${HOME}/.passwd-s3fs -o url=https://s3.$LOCATION.wasabisys.com -o dbglevel=info -f -o rldbg
 
 echo "Verifying Mount"
 
-mount -l | grep $MNT 
+mount -l | grep "$MNT"
 
 if [ $? -ne 0 ]
 
@@ -117,44 +115,44 @@ if [ $? -ne 0 ]
 	fi
 
 #Option to mount bucket at boot
-while true; 
+while true;
 	do
-		read -p "Do you wish to mount the bucket at boot?(yn)" yn
+		read -r -p "Do you wish to mount the bucket at boot?(y/n)" yn
 			case $yn in
-			[Yy]* ) echo "s3fs#$BUCKET $MNT fuse _netdev,allow_other,use_path_request_style,url=https://s3.$BUCKET_LOC.wasabisys.com/ 0 0" >> /etc/fstab;break;;
+			[Yy]* ) echo "s3fs#$BUCKET $MNT fuse _netdev,allow_other,use_path_request_style,url=https://s3.$LOCATION.wasabisys.com/ 0 0" >> /etc/fstab;break;;
 			[Nn]* ) break;;
 				* ) echo -e "${RED}Please answer yes or no.${RESET}";;
 			esac
 done
 
 #Prompt to define encryption key
-read -s -p "Please enter the passphrase for your backup repositories: `echo $'\n> '`" ENCRYPT1
-read -s -p "Please confirm the passphrase: `echo $'\n> '`" ENCRYPT2
+read -r -s -p "Please enter the passphrase for your backup repositories: $(echo $'\n> ')" ENCRYPT1
+read -r -s -p "Please confirm the passphrase: $(echo $'\n> ')" ENCRYPT2
 
 # check if keys match and if not ask again
 while [ "$ENCRYPT1" != "$ENCRYPT2" ];
 	do
 		echo -e "${RED}Key Mismatch. Please try again.${RESET}"
-		read -s -p "Please enter the passphrase for your backup repositories: `echo $'\n> '`" ENCRYPT1
-		read -s -p "Please confirm the passphrase: `echo $'\n> '`" ENCRYPT2
+		read -r -s -p "Please enter the passphrase for your backup repositories: $(echo $'\n> ')" ENCRYPT1
+		read -r -s -p "Please confirm the passphrase: $(echo $'\n> ')" ENCRYPT2
 done
 
 ENCRYPT="$ENCRYPT2"
 
 #Create borg config file directory
-        mkdir /etc/borg.d/ 2>/dev/null >/dev/null
-		mkdir /etc/borg.d/keys 2>/dev/null >/dev/null
-		chmod 600 /etc/borg.d 2>/dev/null >/dev/null
-		chmod 600 /etc/borg.d/keys 2>/dev/null >/dev/null
+mkdir /etc/borg.d/ 2>/dev/null >/dev/null
+mkdir /etc/borg.d/keys 2>/dev/null >/dev/null
+chmod 600 /etc/borg.d 2>/dev/null >/dev/null
+chmod 600 /etc/borg.d/keys 2>/dev/null >/dev/null
 
 echo "$ENCRYPT" >> /etc/borg.d/.borg-passphrase
 chmod 400 /etc/borg.d/.borg-passphrase
 export BORG_PASSCOMMAND="cat /etc/borg.d/.borg-passphrase"
-mv $TEMP/env /etc/borg.d/
+mv "$TEMP"/env /etc/borg.d/
 
 # Checking to see if the Mail package is installed on your system
 # Used for sending email confirmations of the backup process
-MUTT='mutt'     
+MUTT='mutt'
 echo "Checking to see if '$MUTT' is installed on your system."
 printf "\n"
 sleep 2s
@@ -169,9 +167,8 @@ if [ $? -ne 0 ]
 		echo "Package '$MUTT' will now be installed."
 		printf "\n"
 		sleep 2s
-		INSTALL=$
 		set -x                               #Sends output to terminal
-		(apt install $MUTT -y) 
+		(apt install $MUTT -y)
 		{ set +x; } 2>/dev/null              #Stops output to terminal and hides set+x from output
 
 			if [ $? -eq 0 ]
@@ -201,10 +198,10 @@ if [ $? -ne 0 ]
 printf "\n"
 
 #Prompt to define notification email
-while true 
+while true
 	do
-		read -p "Please define email to receive backup notifications: `echo $'\n> '`" EMAIL
-		read -p "You entered '$EMAIL' is this correct?(y/n)" yn
+		read -r -p "Please define email to receive backup notifications: $(echo $'\n> ')" EMAIL
+		read -r -p "You entered '$EMAIL' is this correct?(y/n)" yn
 			case $yn in
 			[Yy]* ) break;;
 			[Nn]* ) echo -e "${RED}Please try again:${RESET}";sleep 2s;;
@@ -215,11 +212,11 @@ done
 echo EMAIL=\$"\"$EMAIL\"" >> /etc/borg.d/env
 
 #Prompt to define sender email
-while true 
+while true
 	do
-		read -p "Please define email sender for backup notifications.
-This email has to be configured on your SMTP server:`echo $'\n> '`" FROM_MAIL
-		read -p "You entered '$FROM_MAIL' is this correct?(y/n)" yn
+		read -r -p "Please define email sender for backup notifications.
+This email has to be configured on your SMTP server:$(echo $'\n> ')" FROM_MAIL
+		read -r -p "You entered '$FROM_MAIL' is this correct?(y/n)" yn
 			case $yn in
 			[Yy]* ) break;;
 			[Nn]* ) echo -e "${RED}Please try again:${RESET}";sleep 2s;;
@@ -230,15 +227,15 @@ done
 echo FROM_MAIL=\$"\"$FROM_MAIL\"" >> /etc/borg.d/env
 
 #Prompt to define SMTP password
-read -s -p "Please enter the SMTP password for your server: `echo $'\n> '`" SMTP_PASS1
-read -s -p "Please confirm your SMTP password: `echo $'\n> '`" SMTP_PASS2
+read -r -s -p "Please enter the SMTP password for your server: $(echo $'\n> ')" SMTP_PASS1
+read -r -s -p "Please confirm your SMTP password: $(echo $'\n> ')" SMTP_PASS2
 
 # check if passwords match and if not ask again
 while [ "$SMTP_PASS1" != "$SMTP_PASS2" ];
 	do
 		echo -e "${RED}Password Mismatch. Please try again.${RESET}"
-		read -s -p "Please enter the SMTP password for your server: `echo $'\n> '`" SMTP_PASS1
-		read -s -p "Please confirm your SMTP password: `echo $'\n> '`" SMTP_PASS2
+		read -r -s -p "Please enter the SMTP password for your server: $(echo $'\n> ')" SMTP_PASS1
+		read -r -s -p "Please confirm your SMTP password: $(echo $'\n> ')" SMTP_PASS2
 done
 
 SMTP_PASS="$SMTP_PASS2"
@@ -246,10 +243,10 @@ SMTP_PASS="$SMTP_PASS2"
 echo SMTP_PASS=\$"\"$SMTP_PASS\"" >> /etc/borg.d/env
 
 #Prompt to define sender name
-while true 
+while true
 	do
-		read -p "Please define sender name for backup notifications: `echo $'\n> '`" FROM_NAME
-		read -p "You entered '$FROM_NAME' is this correct?(y/n)" yn
+		read -r -p "Please define sender name for backup notifications: $(echo $'\n> ')" FROM_NAME
+		read -r -p "You entered '$FROM_NAME' is this correct?(y/n)" yn
 			case $yn in
 			[Yy]* ) break;;
 			[Nn]* ) echo -e "${RED}Please try again:${RESET}";sleep 2s;;
@@ -258,12 +255,12 @@ while true
 done
 
 echo FROM_NAME=\$"\"$FROM_NAME\"" >> /etc/borg.d/env
-                
+
 #Prompt to define SMTP URL
-while true 
+while true
 	do
-		read -p "Please indicate the URL to your SMTP server in the following format (mail.domain.com:587): `echo $'\n> '`" SMTP_URL
-		read -p "You entered '$SMTP_URL' is this correct?(y/n)" yn
+		read -r -p "Please indicate the URL to your SMTP server in the following format (mail.domain.com:587): $(echo $'\n> ')" SMTP_URL
+		read -r -p "You entered '$SMTP_URL' is this correct?(y/n)" yn
 			case $yn in
 			[Yy]* ) break;;
 			[Nn]* ) echo -e "${RED}Please try again:${RESET}";sleep 2s;;
@@ -272,33 +269,33 @@ while true
 done
 
 echo SMTP_URL=\$"\"$SMTP_URL\"" >> /etc/borg.d/env
-                
+
 set -x                               #Sends output to terminal
-(wget -P $TEMP https://raw.githubusercontent.com/The-Inamati/LXD-Backup-Script/master/Mutt_Config_File)
-mv $TEMP/Mutt_Config_File ~/.muttrc
+(wget -P "$TEMP" https://raw.githubusercontent.com/The-Inamati/LXD-Backup-Script/master/Mutt_Config_File)
+mv "$TEMP"/Mutt_Config_File ~/.muttrc
 { set +x; } 2>/dev/null              #Stops output to terminal and hides set+x from output
-sed -i -e 's|${FROM_MAIL}|'$FROM_MAIL'|' -e "s/\${FROM_NAME}/$FROM_NAME/" -e 's|${SMTP_PASS}|'$SMTP_PASS'|' -e 's|${SMTP_URL}|'$SMTP_URL'|'  ~/.muttrc   #Substitutes variables in downloaded configuration file
+sed -i -e 's|${FROM_MAIL}|'"$FROM_MAIL"'|' -e "s/\${FROM_NAME}/$FROM_NAME/" -e 's|${SMTP_PASS}|'"$SMTP_PASS"'|' -e 's|${SMTP_URL}|'"$SMTP_URL"'|'  ~/.muttrc   #Substitutes variables in downloaded configuration file
 
 
 mkdir -p ~/.mutt/cache #Creates cache directory for Mutt
 
-echo -e "${GREEN}Mutt was intalled and configured successfully.${RESET}" 
-echo "Email notifications were configured with settings indicated in the attachment." | mutt  -s "Backup Test Email" $EMAIL -a ~/.muttrc  #email notification
-echo "A test email was just sent with the details you specified. Please confirm you received it.
-In case you don't receive it please check your Mutt configuration at ~/.muttrc.
-The email may also be greylisted. Please try again with the command shown below after the script finishes. 
+echo -e "${GREEN}Mutt was intalled and configured successfully.${RESET}"
+echo "Email notifications were configured with settings indicated in the attachment." | mutt  -s "Backup Test Email" "$EMAIL" -a ~/.muttrc  #email notification
+echo "A test email was just sent with the details you specified. Please confirm you received it."
+echo "In case you don't receive it please check your Mutt configuration at ~/.muttrc."
+echo "The email may also be greylisted. Please try again with the command shown below after the script finishes. "
 
-<echo "Body Text" | mutt -s "Subject" email@mail.domain.com -a ~/.muttrc>"
+echo "<echo "Body Text" | mutt -s Subject email@mail.domain.com -a ~/.muttrc>"
 printf "\n"
-read -p "Press enter to continue"
-		
+read -r -p "Press enter to continue"
+
 echo "Continuing with backup in 5 seconds."
 echo "------------------------------------"
-sleep 5s 
+sleep 5s
 
 ####--Backup--####
-		
-unset yn		
+
+unset yn
 #Menu for compression settings
 while [[ $yn != y ]]
 	do
@@ -308,23 +305,23 @@ LZ4  - Super Fast, Low Compression
 ZLIB - Less fast, Higher Compression
 ZSTD - Slower, Higher Compression
 LZMA - Even Slower, Even Higher Compression
-		
+
 Beware that all compression algorithms will be at their maximum compression setting."
 		PS3="Please select your compression preference: "
 		select COMPRESSION in LZ4 ZLIB ZSTD LZMA
 			do
 				# case statement to compare the first menu items
 				case $COMPRESSION in
-					[LZ4]*)  break;;
-					[ZLIB]*) break;;
-					[ZSTD]*) break;;
-					[LZMA]*) break;;
+					["LZ4"]*)  break;;
+					["ZLIB"]*) break;;
+					["ZSTD"]*) break;;
+					["LZMA"]*) break;;
 							*) echo "Invalid Option";;
 				esac
 		done
-		while true; 
+		while true;
 			do
-				read -p "You chose $COMPRESSION. Is this correct?(yn)" yn
+				read -r -p "You chose $COMPRESSION. Is this correct?(yn)" yn
 				case $yn in
 					[Yy]* ) break;;
 					[Nn]* ) echo "Please choose again";break;;
@@ -340,7 +337,7 @@ elif [[ $COMPRESSION = ZLIB ]]
 	then
 		COMPRESSION="zlib,9"
 elif [[ $COMPRESSION = ZSTD ]]
-	then 
+	then
 		COMPRESSION="zstd,22"
 elif [[ $COMPRESSION = LZMA ]]
 	then
@@ -348,9 +345,9 @@ elif [[ $COMPRESSION = LZMA ]]
 	fi
 
 echo COMPRESSION=\$"\"$COMPRESSION\"" >> /etc/borg.d/env
-	
-cd $LXD
-for i in * 
+
+cd "$LXD" || exit
+for i in *
 	do
 		NAME="$i"
 		# Filename with no format (container_name.snapshot-backup)
@@ -358,23 +355,23 @@ for i in *
 
 		# Full Filename with format (container_name.snapshot-backup.format)
 		FILENAME="$FILENAME_NOFORMAT.tar.gz"
-		
+
 		# Check if the required arguments are not empty
 		if [ "$i" == '' ];
-		
+
 			# If one or more arguments are empty, produce an error
 			then
 				echo -e "${RED}One or more arguments are empty.${RESET}"
 				sleep 5s
 				exit 1 # Exit with general error
-			
+
 			# If none of these arguments are empty, the script can proceed
 			else
-			 
+
 				#Repo Creation
 				echo "Creating Repos"
 				echo "--------------"
-				borg info $MNT/$i 
+				borg info "$MNT"/"$i"
 
 				if [ $? -ne 0 ]
 
@@ -383,13 +380,13 @@ for i in *
 						echo "New container detected repo creation will start."
 						printf "\n"
 						sleep 3s
-						borg init --encryption=repokey-blake2 $MNT/$i
+						borg init --encryption=repokey-blake2 "$MNT"/"$i"
 
 						echo "Checking to see if repo was created on your system."
 						printf "\n"
 						sleep 1s
 
-						borg info $MNT/$i 
+						borg info "$MNT"/"$i"
 
 						if [ $? -ne 0 ]
 
@@ -407,27 +404,27 @@ for i in *
 								sleep 3s
 							fi
 
-						borg key export $MNT/$i /etc/borg.d/keys/$i-key.txt
+						borg key export "$MNT"/"$i" /etc/borg.d/keys/"$i"-key.txt
 						printf "\n"
 						echo "Your encryption key for this repo is:"
 						printf "\n"
 						printf "\n"
-						cat /etc/borg.d/keys/$i-key.txt
+						cat /etc/borg.d/keys/"$i"-key.txt
 						printf "\n"
 						echo "Please save the key or the file with it located in /etc/borg.d/keys/$i-key.txt"
-						echo "Key for $i exported successfully" | mutt -s "Repo key for $i" $EMAIL -a /etc/borg.d/keys/$i-key.txt 
+						echo "Key for $i exported successfully" | mutt -s "Repo key for $i" "$EMAIL" -a /etc/borg.d/keys/"$i"-key.txt
 						echo "This key was also sent to you by email"
 						printf "\n"
-						read -p "Press enter to continue"
-					
-					
+						read -r -p "Press enter to continue"
+
+
 					# If failure
 					else
 						echo -e "${GREEN}Repo for the container $i already exists.Resuming...${RESET}"
 						printf "\n"
 						sleep 3s
 					fi
-								
+
 				# Clear terminal window
 				clear
 
@@ -436,159 +433,159 @@ for i in *
 				echo "LXD Container Backup Script"
 				echo "Created for Peace of Mind"
 				echo "****************************************"
-				
+
 				printf "\n"
-				
+
 				echo "Starting in 5 seconds."
 				echo "..."
 				printf "\n"
 				sleep 5s # Wait 5 seconds
-				
+
 				echo "The snapshot backup filename will be: $FILENAME"
 				echo "Stored temporarily within: $TEMP"
 				echo "Full temporary savepath: $TEMP/$FILENAME"
 				printf "\n"
 				sleep 5s # Wait 5 seconds
-		
+
 				# Start snapshot backup process
 				echo "Starting snapshot backup process..."
 				echo "Please be patient, this can take a while"
-		
+
 				# Create a snapshot of the container, with the snapshot name being 'backup'
 				echo "Creating 'backup' snapshot of '$NAME'."
-				lxc snapshot $NAME backup
-		
+				lxc snapshot "$NAME" backup
+
 				# Publish this snapshot temporarily with an alias name of 'lxd-image-backup-$NAME'
 				echo "Publishing 'backup' snapshot temporarily with an alias name of 'lxd-image-backup-$NAME'."
-				lxc publish $NAME/backup --alias lxd-image-backup-$NAME
-		
+				lxc publish "$NAME"/backup --alias lxd-image-backup-"$NAME"
+
 				# Export the 'lxd-image-backup-$NAME' image, this will save the export in a 'tar.gz' format to the specified temporary location
 				echo "Exporting 'lxd-image-backup-$NAME' image in this location: '$TEMP/$FILENAME'."
 				#lxc image export lxd-image-backup-$NAME .
-				lxc image export lxd-image-backup-$NAME $TEMP/$FILENAME_NOFORMAT
-				
+				lxc image export lxd-image-backup-"$NAME" "$TEMP"/"$FILENAME_NOFORMAT"
+
 				echo "Creating Repository for $i."
 				printf "\n"
 				sleep 2s
 
-				borg create --verbose --filter AME --list --stats --show-rc --progress --compression $COMPRESSION $MNT/$NAME::$NAME-$BEGIN $TEMP/$FILENAME	
-									
+				borg create --verbose --filter AME --list --stats --show-rc --progress --compression $COMPRESSION "$MNT"/"$NAME"::"$NAME"-"$BEGIN" "$TEMP"/"$FILENAME"
+
 				echo "Checking Repository Consistency"
 				printf "\n"
 				sleep 2s
 
-				borg check -p --repository-only $MNT/$i		
-							
+				borg check -p --repository-only "$MNT"/"$i"
+
 				echo "Checking $i Archives"
 
-				borg check -p --archives-only --verify-data --prefix $NAME- --last 3 $MNT/$i				
-				
-				
+				borg check -p --archives-only --verify-data --prefix "$NAME"- --last 3 "$MNT"/"$i"
+
+
 				####--Cleanup--####
 
 				# Now delete the 'lxd-image-backup-$NAME' image
 				echo "Deleting 'lxd-image-backup-$NAME' image from server."
-				lxc image delete lxd-image-backup-$NAME
-			
+				lxc image delete lxd-image-backup-"$NAME"
+
 				# And delete the temporary 'backup' snapshot
 				echo "Deleting temporary 'backup' snapshot from server."
-				lxc delete local:$NAME/backup
-			
+				lxc delete local:"$NAME"/backup
+
 				echo "Snapshot backup process has finished."
 				echo "..."
 				printf "\n"
-			
-			
+
+
 				# Verify snapshot file has been created
 				echo "Verifying $FILENAME file has been created."
 				printf "\n"
-		
-					if [ -f $TEMP/$FILENAME ]
-		
+
+					if [ -f "$TEMP"/"$FILENAME" ]
+
 						# If success
 						then
 							echo "File exists on the local server."
 							printf "\n"
-							
+
 							# Remove snapshot file from the local server
 							echo "Now removing $FILENAME from the local server."
-							rm $TEMP/$FILENAME
+							rm "$TEMP"/"$FILENAME"
 							echo "Finished removing file."
 							echo "..."
 							printf "\n"
-				
+
 							# Verify snapshot file has been removed from the local server
 							echo "Verifying $FILENAME has been removed from the local server."
 							echo "..."
 							printf "\n"
-		
-								if [ -f $TEMP/$FILENAME ]
-		
+
+								if [ -f "$TEMP"/"$FILENAME" ]
+
 									# If success
 									then
 										echo -e "${RED}File still exists on the local server.${RESET}"
 										echo -e "${RED}Backup has failed.${RESET}"
 										printf "\n"
-					
+
 										# Send an email explaining this failure
 										echo "An email will be sent to $EMAIL"
 										echo -e "${RED}$FILENAME was supposed to be removed, but still exists on the local server.${RESET}"
-										echo "Failed removing snapshot file from local server." | mutt  -s "Backup Failed" $EMAIL
+										echo "Failed removing snapshot file from local server." | mutt  -s "Backup Failed" "$EMAIL"
 										echo "A log file exists in $TEMP/backup_log_$BEGIN.txt"
 										sleep 5s
 										exit 1 # Exit with general error
-		
+
 									# If failure
 									else
 										printf "\n"
-				
-										borg info $MNT/$i >> /tmp/backup_$i.txt						
-										echo -e "${GREEN}Backup has finished successfully. $FILENAME has been created and backed up successfully.${RESET}" 
+
+										borg info "$MNT"/"$i" >> /tmp/backup_"$i".txt
+										echo -e "${GREEN}Backup has finished successfully. $FILENAME has been created and backed up successfully.${RESET}"
 										echo "An email will be sent to $EMAIL"
 										END=$(date +'%H:%M:%S')
-										echo "Backup has finished successfully. $FILENAME has been created and backed up successfully. Backup started at $BEGIN and was completed at $END. Log and size of backup are in attachments" | mutt -s "Success: $NAME Backup" $EMAIL -a $TEMP/backup_log_$BEGIN.txt -a /tmp/backup_$i.txt 
-										rm /tmp/backup_$i.txt
-									fi                
+										echo "Backup has finished successfully. $FILENAME has been created and backed up successfully. Backup started at $BEGIN and was completed at $END. Log and size of backup are in attachments" | mutt -s "Success: $NAME Backup" "$EMAIL" -a "$TEMP"/backup_log_"$BEGIN".txt -a /tmp/backup_"$i".txt
+										rm /tmp/backup_"$i".txt
+									fi
 						# If failure
 						else
 							echo -e "${RED}File does not exist on the local server.${RESET}"
 							echo -e "${RED}Backup has failed.${RESET}"
 							printf "\n"
-		
+
 							# Send an email explaining this failure
 							echo "An email will be sent to $EMAIL"
-							echo -e "${RED}Creating $FILENAME on local server failed.${RESET}" 
-							echo "Creating $FILENAME on local server failed." | mutt  -s "Backup Failed" $EMAIL
+							echo -e "${RED}Creating $FILENAME on local server failed.${RESET}"
+							echo "Creating $FILENAME on local server failed." | mutt  -s "Backup Failed" "$EMAIL"
 							echo "A log file exists in $TEMP/backup_log_$BEGIN.txt"
 							sleep 5s
 							exit 1 # Exit with general error
 
-						fi     
-			fi			
+						fi
+			fi
 done
 
 echo "A log file exists in $TEMP/backup_log_$BEGIN.txt"
 printf "\n"
-while true; 
+while true;
 	do
-		read -p "Do you wish to delete the log file?(y/n)" yn
+		read -r -p "Do you wish to delete the log file?(y/n)" yn
 		case $yn in
-			[Yy]* ) rm $TEMP/backup_log_$BEGIN.txt;break;;
+			[Yy]* ) rm "$TEMP"/backup_log_"$BEGIN".txt;break;;
 			[Nn]* ) break;;
 				* ) echo -e "${RED}Please answer yes or no.${RESET}";;
 		esac
-done	
+done
 
 printf "\n"
-while true; 
+while true;
 	do
-		read -p "Do you wish to run this backup as a service?(y/n)" yn
+		read -r -p "Do you wish to run this backup as a service?(y/n)" yn
 		case $yn in
 			[Yy]* ) break;;
 			[Nn]* ) exit 0;;
 				* ) echo -e "${RED}Please answer yes or no.${RESET}";;
 		esac
-done	
+done
 
 echo "Creating Service"
 echo "----------------"
@@ -596,21 +593,21 @@ sleep 3s
 
 #Prompt for hour of automatic backup
 while true; do
-        read -p "Please select hour for the automatic backup to run (24h format) `echo $'\n> '`" HOUR
+        read -r -p "Please select hour for the automatic backup to run (24h format) $(echo $'\n> ')" HOUR
         case $HOUR in
-      (0[0-9] ) echo "Proceeding...";sleep 2s;break;;
-      (1[0-9] ) echo "Proceeding...";sleep 2s;break;;
-      (2[0-3] ) echo "Proceeding...";sleep 2s;break;;
-             * ) echo "Please input valid hour.";sleep 2s;;
+      (0[0-9] ) echo -e "${GREEN}Proceeding...${RESET}";sleep 2s;break;;
+      (1[0-9] ) echo -e "${GREEN}Proceeding...${RESET}";sleep 2s;break;;
+      (2[0-3] ) echo -e "${GREEN}Proceeding...${RESET}";sleep 2s;break;;
+             * ) echo -e "${RED}Please input valid hour.${RESET}";sleep 2s;;
     esac
 done
 
 #Prompt for daily retention of automatic backup
 while true; do
-        read -p "Please select how many daily backups you wish to have `echo $'\n> '`" DAILY
+        read -r -p "Please select how many daily backups you wish to have $(echo $'\n> ')" DAILY
         case $DAILY in
-      ([0-7] ) echo "Proceeding...";sleep 2s;break;;
-           * ) echo "Please input valid number.";sleep 2s;;
+      ([0-7] ) echo -e "${GREEN}Proceeding...${RESET}";sleep 2s;break;;
+           * ) echo -e "${RED}Please input valid number.${RESET}";sleep 2s;;
     esac
 done
 
@@ -618,10 +615,10 @@ echo DAILY=\$"\"$DAILY\"" >> /etc/borg.d/env
 
 #Prompt for weekly retention of automatic backup
 while true; do
-        read -p "Please select how many weekly backups you wish to have `echo $'\n> '`" WEEKLY
+        read -r -p "Please select how many weekly backups you wish to have $(echo $'\n> ')" WEEKLY
         case $WEEKLY in
-      ([0-4] ) echo "Proceeding...";sleep 2s;break;;
-             * ) echo "Please input valid hour.";sleep 2s;;
+      ([0-4] ) echo -e "${GREEN}Proceeding...${RESET}";sleep 2s;break;;
+             * ) echo -e "${RED}Please input valid hour.${RESET}";sleep 2s;;
     esac
 done
 
@@ -629,46 +626,52 @@ echo WEEKLY=\$"\"$WEEKLY\"" >> /etc/borg.d/env
 
 #Prompt for monthly retention of automatic backup
 while true; do
-        read -p "Please select how many monthly backups you wish to have `echo $'\n> '`" MONTHLY
+        read -r -p "Please select how many monthly backups you wish to have $(echo $'\n> ')" MONTHLY
         case $MONTHLY in
-      ([0-9] ) echo "Proceeding...";sleep 2s;break;;
-      (1[0-2] ) echo "Proceeding...";sleep 2s;break;;
-             * ) echo "Please input valid hour.";sleep 2s;;
+      ([0-9] ) echo -e "${GREEN}Proceeding...${RESET}";sleep 2s;break;;
+      (1[0-2] ) echo -e "${GREEN}Proceeding...${RESET}";sleep 2s;break;;
+             * ) echo -e "${RED}Please input valid hour.${RESET}";sleep 2s;;
     esac
 done
 
 echo MONTHLY=\$"\"$MONTHLY\"" >> /etc/borg.d/env
 
 set -x                               #Sends output to terminal
-(wget -P $TEMP https://raw.githubusercontent.com/The-Inamati/LXD-Backup-Script/master/services/backup_wasabi_mutt)
+(wget -P "$TEMP" https://raw.githubusercontent.com/The-Inamati/LXD-Backup-Script/master/services/backup_wasabi_mutt)
 { set +x; } 2>/dev/null              #Stops output to terminal and hides set+x from output
-mv $TEMP/backup_wasabi_mutt /etc/borg.d/backup.sh
+mv "$TEMP"/backup_wasabi_mutt /etc/borg.d/backup.sh
 chmod +x /etc/borg.d/backup.sh
 
 set -x                               #Sends output to terminal
-(wget -P $TEMP https://raw.githubusercontent.com/The-Inamati/LXD-Backup-Script/master/backup.timer)
+(wget -P "$TEMP" https://raw.githubusercontent.com/The-Inamati/LXD-Backup-Script/master/backup.timer)
 { set +x; } 2>/dev/null              #Stops output to terminal and hides set+x from output
-mv $TEMP/backup.timer /etc/systemd/system/
-sed -i -e 's|${HOUR}|'$HOUR'|' /etc/systemd/system/backup.timer
+mv "$TEMP"/backup.timer /etc/systemd/system/
+sed -i -e 's|${HOUR}|'"$HOUR"'|' /etc/systemd/system/backup.timer
 
 
 set -x                               #Sends output to terminal
-(wget -P $TEMP https://raw.githubusercontent.com/The-Inamati/LXD-Backup-Script/master/backup.service)
+(wget -P "$TEMP" https://raw.githubusercontent.com/The-Inamati/LXD-Backup-Script/master/backup.service)
 { set +x; } 2>/dev/null              #Stops output to terminal and hides set+x from output
-mv $TEMP/backup.service /etc/systemd/system/
+mv "$TEMP"/backup.service /etc/systemd/system/
 
 
 set -x                               #Sends output to terminal
-(wget -P $TEMP https://raw.githubusercontent.com/The-Inamati/LXD-Backup-Script/master/cleanup.sh)
+(wget -P "$TEMP" https://raw.githubusercontent.com/The-Inamati/LXD-Backup-Script/master/cleanup.sh)
 { set +x; } 2>/dev/null              #Stops output to terminal and hides set+x from output
-mv $TEMP/cleanup.sh /etc/borg.d/
+mv "$TEMP"/cleanup.sh /etc/borg.d/
 chmod +x /etc/borg.d/cleanup.sh
 
 set -x                               #Sends output to terminal
-(wget -P $TEMP https://raw.githubusercontent.com/The-Inamati/LXD-Backup-Script/master/restore.sh)
+(wget -P "$TEMP" https://raw.githubusercontent.com/The-Inamati/LXD-Backup-Script/master/restore.sh)
 { set +x; } 2>/dev/null              #Stops output to terminal and hides set+x from output
-mv $TEMP/restore.sh /etc/borg.d/
+mv "$TEMP"/restore.sh /etc/borg.d/
 chmod +x /etc/borg.d/restore.sh
+
+set -x                               #Sends output to terminal
+(wget -P "$TEMP" https://raw.githubusercontent.com/The-Inamati/LXD-Backup-Script/master/modify.sh)
+{ set +x; } 2>/dev/null              #Stops output to terminal and hides set+x from output
+mv "$TEMP"/modify.sh /etc/borg.d/
+chmod +x /etc/borg.d/modify.sh
 
 systemctl enable backup.timer
 systemctl enable backup.service
@@ -676,7 +679,7 @@ systemctl start backup.timer
 printf "\n"
 printf "\n"
 echo -e "${GREEN}Service created successfully. Backup will run everyday at $HOUR. To change this edit the file at /etc/systemd/system/backup.timer.${RESET}"
-rm $TEMP/Wasabi_Mutt
+rm "$TEMP"/Wasabi_Mutt
 sleep 7s
 
 exit 0 # Successful exit
