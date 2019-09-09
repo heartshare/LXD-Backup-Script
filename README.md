@@ -58,6 +58,7 @@ Or you can use your Gmail SMTP details.
 
 ### Planned
 
+- Telegram Support
 - rClone backup for the major cloud providers
 - SSH backup
 - Pushover Support (without the attachments because Pushover only supports images)
