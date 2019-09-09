@@ -18,7 +18,6 @@ I desperately needed something that would backup my LXD containers automatically
 - Automatic Tool to Modify All Backup Settings After Install
 
 ### Types of Backup Storage Available
-- SSH
 - Local
 - Wasabi
 
@@ -59,6 +58,8 @@ Or you can use your Gmail SMTP details.
 
 ### Planned
 
+- rClone backup for the major cloud providers
+- SSH backup
 - Pushover Support (without the attachments because Pushover only supports images)
 - XMPP Support
 - Possibly Gotify Support also
